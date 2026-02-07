@@ -4,12 +4,15 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "clean": "turbo run clean && rm -rf node_modules",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\" --ignore-path .gitignore"
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
   },
   "devDependencies": {
-    "@types/minimatch": "^6.0.0",
-    "prettier": "^3.1.1",
-    "turbo": "^2.8.2"
+    "@biomejs/biome": "^2.3.13",
+    "turbo": "^2.8.2",
+    "ultracite": "7.1.4"
   },
   "engines": {
     "node": ">=18"
