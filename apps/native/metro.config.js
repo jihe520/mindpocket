@@ -5,8 +5,8 @@ const { wrapWithReanimatedMetroConfig } = require("react-native-reanimated/metro
 const path = require("node:path")
 
 // Find the workspace root, this can be replaced with `find-yarn-workspace-root`
-const workspaceRoot = path.resolve(__dirname, "../..")
-const projectRoot = __dirname
+const workspaceRoot = path.resolve(import.meta.dirname, "../..")
+const projectRoot = import.meta.dirname
 
 const config = getDefaultConfig(projectRoot)
 

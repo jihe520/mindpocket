@@ -1,5 +1,6 @@
-import { SidebarLeft } from "@/components/sidebar-left"
-import { SidebarRight } from "@/components/sidebar-right"
+"use client"
+
+import dynamic from "next/dynamic"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,15 +10,24 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
+const SidebarLeft = dynamic(() => import("@/components/sidebar-left").then((m) => m.SidebarLeft), {
+  ssr: false,
+})
+
+const SidebarRight = dynamic(
+  () => import("@/components/sidebar-right").then((m) => m.SidebarRight),
+  { ssr: false }
+)
+
 export default function Web() {
   return (
     <SidebarProvider>
       <SidebarLeft />
       <SidebarInset>
-        <header className="bg-background sticky top-0 flex h-14 shrink-0 items-center gap-2">
+        <header className="sticky top-0 flex h-14 shrink-0 items-center gap-2 bg-background">
           <div className="flex flex-1 items-center gap-2 px-3">
             <SidebarTrigger />
-            <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+            <Separator className="mr-2 data-[orientation=vertical]:h-4" orientation="vertical" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -30,8 +40,8 @@ export default function Web() {
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
-          <div className="bg-muted/50 mx-auto h-24 w-full max-w-3xl rounded-xl" />
-          <div className="bg-muted/50 mx-auto h-[100vh] w-full max-w-3xl rounded-xl" />
+          <div className="mx-auto h-24 w-full max-w-3xl rounded-xl bg-muted/50" />
+          <div className="mx-auto h-[100vh] w-full max-w-3xl rounded-xl bg-muted/50" />
         </div>
       </SidebarInset>
       <SidebarRight />

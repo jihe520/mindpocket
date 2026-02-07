@@ -7,14 +7,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": [
-      "**",
-      "!node_modules",
-      "!dist",
-      "!.next",
-      "!.expo",
-      "!.turbo"
-    ]
+    "includes": ["!node_modules", "!dist", "!.next", "!.expo", "!.turbo"]
   },
   "formatter": {
     "enabled": true,
@@ -35,6 +28,20 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["**/components/ui/**"],
+      "linter": {
+        "enabled": false
+      },
+      "formatter": {
+        "enabled": false
+      },
+      "assist": {
+        "enabled": false
+      }
+    }
+  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "double",
@@ -53,7 +60,5 @@
       "enabled": false
     }
   },
-  "extends": [
-    "ultracite/biome/core"
-  ]
+  "extends": ["ultracite/biome/core"]
 }

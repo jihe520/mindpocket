@@ -4,15 +4,6 @@ module.exports = {
     resolveAlias: {
       "react-native": "react-native-web",
     },
-    resolveExtensions: [
-      ".web.js",
-      ".web.jsx",
-      ".web.ts",
-      ".web.tsx",
-      ".js",
-      ".jsx",
-      ".ts",
-      ".tsx",
-    ],
+    resolveExtensions: [".web.js", ".web.jsx", ".web.ts", ".web.tsx", ".js", ".jsx", ".ts", ".tsx"],
   },
 }
