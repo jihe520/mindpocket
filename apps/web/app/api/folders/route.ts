@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm"
+import { eq, sql } from "drizzle-orm"
+import { nanoid } from "nanoid"
 import { headers } from "next/headers"
 import { db } from "@/db/client"
 import { bookmark } from "@/db/schema/bookmark"
@@ -36,4 +37,43 @@ export async function GET() {
   )
 
   return Response.json({ folders: foldersWithBookmarks })
+}
+
+export async function POST(request: Request) {
+  const session = await auth.api.getSession({ headers: await headers() })
+  if (!session?.user) {
+    return new Response("Unauthorized", { status: 401 })
+  }
+
+  const body = await request.json()
+  const name = typeof body.name === "string" ? body.name.trim() : ""
+  if (!name) {
+    return Response.json({ error: "名称不能为空" }, { status: 400 })
+  }
+
+  const emoji = typeof body.emoji === "string" ? body.emoji : "📁"
+
+  // 获取当前最大 sortOrder
+  const [max] = await db
+    .select({ maxOrder: sql<number>`coalesce(max(${folder.sortOrder}), -1)` })
+    .from(folder)
+    .where(eq(folder.userId, session.user.id))
+
+  const newFolder = await db
+    .insert(folder)
+    .values({
+      id: nanoid(),
+      userId: session.user.id,
+      name,
+      emoji,
+      sortOrder: (max?.maxOrder ?? -1) + 1,
+    })
+    .returning({
+      id: folder.id,
+      name: folder.name,
+      emoji: folder.emoji,
+      sortOrder: folder.sortOrder,
+    })
+
+  return Response.json({ folder: { ...newFolder[0], items: [] } }, { status: 201 })
 }

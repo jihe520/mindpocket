@@ -17,7 +17,7 @@ import {
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import type * as React from "react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { NavUser } from "@/components/nav-user"
@@ -40,6 +40,7 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar"
+import { useT } from "@/lib/i18n"
 
 interface ChatItem {
   id: string
@@ -69,11 +70,15 @@ const socialLinks = [
 export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
   const router = useRouter()
+  const t = useT()
   const [chats, setChats] = useState<ChatItem[]>([])
   const [isLoadingChats, setIsLoadingChats] = useState(true)
   const [folders, setFolders] = useState<FolderItem[]>([])
   const [isLoadingFolders, setIsLoadingFolders] = useState(true)
   const [userInfo, setUserInfo] = useState<UserInfo>({ name: "", email: "", avatar: "" })
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false)
+  const [newFolderName, setNewFolderName] = useState("")
+  const newFolderInputRef = useRef<HTMLInputElement>(null)
 
   // 初始加载文件夹和用户信息（只加载一次）
   useEffect(() => {
@@ -132,6 +137,34 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
     }
   }, [pathname])
 
+  const handleCreateFolder = useCallback(async () => {
+    const name = newFolderName.trim()
+    if (!name) {
+      setIsCreatingFolder(false)
+      setNewFolderName("")
+      return
+    }
+    try {
+      const res = await fetch("/api/folders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setFolders((prev) => [...prev, data.folder])
+        toast.success(t.sidebar.folderCreated)
+      } else {
+        toast.error(t.sidebar.folderCreateFailed)
+      }
+    } catch {
+      toast.error(t.sidebar.folderCreateFailed)
+    } finally {
+      setIsCreatingFolder(false)
+      setNewFolderName("")
+    }
+  }, [newFolderName, t])
+
   const handleDeleteChat = useCallback(
     async (e: React.MouseEvent, chatId: string) => {
       e.preventDefault()
@@ -147,13 +180,13 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
           if (pathname === `/chat/${chatId}`) {
             router.push("/chat")
           }
-          toast.success("已删除对话")
+          toast.success(t.sidebar.chatDeleted)
         }
       } catch {
-        toast.error("删除失败")
+        toast.error(t.sidebar.chatDeleteFailed)
       }
     },
-    [pathname, router]
+    [pathname, router, t]
   )
 
   return (
@@ -168,7 +201,9 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">MindPocket</span>
-                  <span className="truncate text-muted-foreground text-xs">口袋大脑</span>
+                  <span className="truncate text-muted-foreground text-xs">
+                    {t.sidebar.subtitle}
+                  </span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -181,7 +216,7 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
             <SidebarMenuButton asChild isActive={pathname === "/chat"}>
               <Link href="/chat">
                 <Sparkles />
-                <span>AI 对话</span>
+                <span>{t.sidebar.aiChat}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -189,7 +224,7 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
             <SidebarMenuButton asChild isActive={pathname === "/search"}>
               <Link href="/search">
                 <Search />
-                <span>搜索</span>
+                <span>{t.sidebar.search}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -197,7 +232,7 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
             <SidebarMenuButton asChild isActive={pathname === "/dashboard"}>
               <Link href="/dashboard">
                 <LayoutDashboard />
-                <span>数据看板</span>
+                <span>{t.sidebar.dashboard}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -205,7 +240,7 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
             <SidebarMenuButton asChild isActive={pathname === "/"}>
               <Link href="/">
                 <Bookmark />
-                <span>所有收藏</span>
+                <span>{t.sidebar.bookmarks}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -219,7 +254,7 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
         <SidebarGroup>
           <SidebarGroupLabel>
             <MessageSquare className="mr-1 size-3" />
-            聊天记录
+            {t.sidebar.chatHistory}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -227,14 +262,14 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
                 <SidebarMenuItem>
                   <SidebarMenuButton disabled>
                     <Loader2 className="size-4 animate-spin" />
-                    <span>加载中...</span>
+                    <span>{t.common.loading}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
               {!isLoadingChats && chats.length === 0 && (
                 <SidebarMenuItem>
                   <SidebarMenuButton disabled>
-                    <span className="text-muted-foreground text-xs">暂无对话</span>
+                    <span className="text-muted-foreground text-xs">{t.sidebar.noChats}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
@@ -258,21 +293,21 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
 
         {/* 文件夹分类 */}
         <SidebarGroup>
-          <SidebarGroupLabel>文件夹</SidebarGroupLabel>
+          <SidebarGroupLabel>{t.sidebar.folders}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {isLoadingFolders && (
                 <SidebarMenuItem>
                   <SidebarMenuButton disabled>
                     <Loader2 className="size-4 animate-spin" />
-                    <span>加载中...</span>
+                    <span>{t.common.loading}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
               {!isLoadingFolders && folders.length === 0 && (
                 <SidebarMenuItem>
                   <SidebarMenuButton disabled>
-                    <span className="text-muted-foreground text-xs">暂无文件夹</span>
+                    <span className="text-muted-foreground text-xs">{t.sidebar.noFolders}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
@@ -311,10 +346,37 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
                 ))}
 
               <SidebarMenuItem>
-                <SidebarMenuButton className="text-sidebar-foreground/70">
-                  <Plus className="size-4" />
-                  <span>新建文件夹</span>
-                </SidebarMenuButton>
+                {isCreatingFolder ? (
+                  <div className="flex items-center gap-2 px-2 py-1">
+                    <span>📁</span>
+                    <input
+                      autoFocus
+                      className="h-6 flex-1 rounded border bg-transparent px-1 text-sm outline-none focus:border-sidebar-primary"
+                      onBlur={handleCreateFolder}
+                      onChange={(e) => setNewFolderName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleCreateFolder()
+                        }
+                        if (e.key === "Escape") {
+                          setIsCreatingFolder(false)
+                          setNewFolderName("")
+                        }
+                      }}
+                      placeholder={t.sidebar.folderPlaceholder}
+                      ref={newFolderInputRef}
+                      value={newFolderName}
+                    />
+                  </div>
+                ) : (
+                  <SidebarMenuButton
+                    className="text-sidebar-foreground/70"
+                    onClick={() => setIsCreatingFolder(true)}
+                  >
+                    <Plus className="size-4" />
+                    <span>{t.sidebar.newFolder}</span>
+                  </SidebarMenuButton>
+                )}
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>

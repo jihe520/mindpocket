@@ -23,7 +23,7 @@ export function ChatClient({
           <span className="line-clamp-1 text-sm">{chatTitle}</span>
         </div>
       </header>
-      <Chat id={id} initialMessages={initialMessages} />
+      <Chat autoResume id={id} initialMessages={initialMessages} />
     </>
   )
 }

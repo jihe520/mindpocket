@@ -158,8 +158,8 @@ Turborepo 会缓存构建结果以加速后续构建。如果遇到缓存问题�
 
 完成一段任务 在项目根目录运行：
 ```bash
-pnpm format
-pnpm check
+先pnpm format
+后pnpm check
 ``` 
 以确保代码质量。
 

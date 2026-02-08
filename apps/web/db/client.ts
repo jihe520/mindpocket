@@ -11,6 +11,7 @@ import {
 } from "./schema/auth"
 import { bookmark, bookmarkRelations } from "./schema/bookmark"
 import { chat, chatRelations, message, messageRelations } from "./schema/chat"
+import { embedding } from "./schema/embedding"
 import { folder, folderRelations } from "./schema/folder"
 import { bookmarkTag, bookmarkTagRelations, tag, tagRelations } from "./schema/tag"
 
@@ -36,6 +37,7 @@ const schema = {
   chatRelations,
   message,
   messageRelations,
+  embedding,
 }
 
 export const db = drizzle(sql, { schema })

@@ -53,6 +53,22 @@ export async function updateChatTitle({ chatId, title }: { chatId: string; title
   await db.update(chat).set({ title }).where(eq(chat.id, chatId))
 }
 
+export async function createStreamId({ streamId, chatId }: { streamId: string; chatId: string }) {
+  await db.update(chat).set({ activeStreamId: streamId }).where(eq(chat.id, chatId))
+}
+
+export async function getActiveStreamId({ chatId }: { chatId: string }) {
+  const result = await db
+    .select({ activeStreamId: chat.activeStreamId })
+    .from(chat)
+    .where(eq(chat.id, chatId))
+  return result[0]?.activeStreamId ?? null
+}
+
+export async function clearActiveStreamId({ chatId }: { chatId: string }) {
+  await db.update(chat).set({ activeStreamId: null }).where(eq(chat.id, chatId))
+}
+
 export async function saveMessages({
   messages,
 }: {

@@ -26,6 +26,20 @@ export function ChatMessage({
             )
           }
 
+          if (part.type === "file" && part.mediaType?.startsWith("image/")) {
+            return (
+              <MessageContent key={key}>
+                {/* biome-ignore lint/performance/noImgElement: dynamic AI chat images with unknown dimensions */}
+                {/* biome-ignore lint/correctness/useImageSize: dynamic AI chat images with unknown dimensions */}
+                <img
+                  alt={part.filename ?? "image"}
+                  className="max-h-96 rounded-lg"
+                  src={part.url}
+                />
+              </MessageContent>
+            )
+          }
+
           if (part.type === "text") {
             if (message.role === "user") {
               return (
