@@ -23,7 +23,7 @@ export default function HomeScreen() {
     const chatId = Date.now().toString(36) + Math.random().toString(36).slice(2)
     router.push({
       pathname: "/chat/[id]",
-      params: { id: chatId, initialMessage: text },
+      params: { id: chatId, initialMessage: text, selectedModel },
     })
   }
 
@@ -44,7 +44,7 @@ export default function HomeScreen() {
         {/* Greeting */}
         <View className="items-center px-4 pb-6 pt-16">
           <Text className="text-3xl font-bold text-neutral-800">{greeting}</Text>
-          <Text className="mt-2 text-base text-neutral-400">有什么可以帮您的吗？</Text>
+          <Text className="mt-2 text-base text-neutral-400">有什么可以帮您的吗？？</Text>
         </View>
 
         {/* Search Input */}

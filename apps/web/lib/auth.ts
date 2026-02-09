@@ -1,3 +1,4 @@
+import { expo } from "@better-auth/expo"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
@@ -6,7 +7,7 @@ import { db } from "@/db/client"
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || "http://127.0.0.1:3000",
-  trustedOrigins: ["chrome-extension://*", "http://127.0.0.1:3000"],
+  trustedOrigins: ["chrome-extension://*", "http://127.0.0.1:3000", "mindpocket://"],
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
@@ -26,5 +27,5 @@ export const auth = betterAuth({
   //     clientSecret: process.env.GITHUB_CLIENT_SECRET!,
   //   },
   // },
-  plugins: [nextCookies(), bearer()],
+  plugins: [nextCookies(), bearer(), expo()],
 })

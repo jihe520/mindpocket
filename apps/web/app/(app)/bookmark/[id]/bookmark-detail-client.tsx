@@ -1,10 +1,25 @@
 "use client"
 
-import { ArrowLeft, Calendar, ExternalLink, Globe, Loader2, Pencil, Save, User } from "lucide-react"
+import {
+  ArrowLeft,
+  Calendar,
+  ExternalLink,
+  FileText,
+  FolderOpen,
+  Globe,
+  Loader2,
+  Monitor,
+  Pencil,
+  Puzzle,
+  Save,
+  Tag,
+  User,
+} from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useTheme } from "next-themes"
 import { useCallback, useState } from "react"
+import { hasPlatformIcon, PlatformIcon } from "@/components/icons/platform-icons"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -148,51 +163,156 @@ function Header({
   )
 }
 
+function getSourceLabel(sourceType: string | null) {
+  switch (sourceType) {
+    case "url":
+      return { label: "Web", icon: Monitor }
+    case "extension":
+      return { label: "Extension", icon: Puzzle }
+    case "file":
+      return { label: "File", icon: FileText }
+    default:
+      return { label: "Web", icon: Monitor }
+  }
+}
+
+function getTypeLabel(type: string) {
+  switch (type) {
+    case "link":
+      return "链接"
+    case "article":
+      return "文章"
+    case "video":
+      return "视频"
+    case "image":
+      return "图片"
+    default:
+      return type
+  }
+}
+
 function MetadataSection({ bookmark }: { bookmark: BookmarkDetail }) {
+  const source = getSourceLabel(bookmark.sourceType)
+  const SourceIcon = source.icon
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* 标题 */}
       <h1 className="text-2xl font-bold leading-tight">{bookmark.title}</h1>
-      {bookmark.description && <p className="text-muted-foreground">{bookmark.description}</p>}
-      <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-        {bookmark.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {bookmark.tags.map((tag) => (
-              <Badge key={tag.id} variant="secondary">
-                {tag.name}
-              </Badge>
-            ))}
-          </div>
-        )}
+
+      {/* 描述 */}
+      {bookmark.description && (
+        <p className="text-muted-foreground leading-relaxed">{bookmark.description}</p>
+      )}
+
+      {/* 属性列表 - 竖向排列 */}
+      <div className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
+        {/* 平台 */}
         {bookmark.platform && (
-          <span className="flex items-center gap-1">
-            <Globe className="size-3.5" />
-            {bookmark.platform}
-          </span>
+          <>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Globe className="size-3.5" />
+              平台
+            </span>
+            <span className="flex items-center gap-1.5">
+              {hasPlatformIcon(bookmark.platform) ? (
+                <PlatformIcon className="size-4" platform={bookmark.platform} />
+              ) : (
+                <Globe className="size-4 text-muted-foreground" />
+              )}
+              <span className="capitalize">{bookmark.platform}</span>
+            </span>
+          </>
         )}
+
+        {/* 来源 */}
+        <span className="flex items-center gap-1.5 text-muted-foreground">
+          <SourceIcon className="size-3.5" />
+          来源
+        </span>
+        <span>
+          <Badge className="text-xs" variant="outline">
+            {source.label}
+          </Badge>
+        </span>
+
+        {/* 类型 */}
+        <span className="flex items-center gap-1.5 text-muted-foreground">
+          <FileText className="size-3.5" />
+          类型
+        </span>
+        <span>{getTypeLabel(bookmark.type)}</span>
+
+        {/* 作者 */}
         {bookmark.author && (
-          <span className="flex items-center gap-1">
-            <User className="size-3.5" />
-            {bookmark.author}
-          </span>
+          <>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <User className="size-3.5" />
+              作者
+            </span>
+            <span>{bookmark.author}</span>
+          </>
         )}
+
+        {/* 文件夹 */}
         {bookmark.folderName && (
-          <span className="flex items-center gap-1">
-            <span>{bookmark.folderEmoji || "📁"}</span>
-            {bookmark.folderName}
-          </span>
+          <>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <FolderOpen className="size-3.5" />
+              文件夹
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span>{bookmark.folderEmoji || "📁"}</span>
+              {bookmark.folderName}
+            </span>
+          </>
         )}
-        <span className="flex items-center gap-1">
+
+        {/* 收藏时间 */}
+        <span className="flex items-center gap-1.5 text-muted-foreground">
           <Calendar className="size-3.5" />
+          收藏时间
+        </span>
+        <span>
           {new Date(bookmark.createdAt).toLocaleDateString("zh-CN", {
             year: "numeric",
             month: "long",
             day: "numeric",
           })}
         </span>
+
+        {/* 原始发布时间 */}
         {bookmark.sourceCreatedAt && (
-          <span className="text-xs">
-            原始发布: {new Date(bookmark.sourceCreatedAt).toLocaleDateString("zh-CN")}
-          </span>
+          <>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Calendar className="size-3.5" />
+              发布时间
+            </span>
+            <span>
+              {new Date(bookmark.sourceCreatedAt).toLocaleDateString("zh-CN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
+          </>
+        )}
+
+        {/* 标签 */}
+        {bookmark.tags.length > 0 && (
+          <>
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Tag className="size-3.5" />
+              标签
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {bookmark.tags.map((tag) => (
+                <Badge key={tag.id} variant="secondary">
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

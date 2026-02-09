@@ -1,53 +1,48 @@
+import { useChat } from "@ai-sdk/react"
 import { useLocalSearchParams } from "expo-router"
-import { useEffect, useState } from "react"
-import { KeyboardAvoidingView, Platform, View } from "react-native"
+import { useEffect, useRef, useState } from "react"
+import { Alert, KeyboardAvoidingView, Platform, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { ChatInputBar } from "@/components/chat/chat-input-bar"
 import { ChatMessages } from "@/components/chat/chat-messages"
-
-interface Message {
-  id: string
-  role: "user" | "assistant"
-  content: string
-}
+import { createChatTransport } from "@/lib/chat"
 
 export default function ChatScreen() {
-  const { id: _id, initialMessage } = useLocalSearchParams<{
+  const { id, initialMessage, selectedModel } = useLocalSearchParams<{
     id: string
     initialMessage?: string
+    selectedModel?: string
   }>()
   const insets = useSafeAreaInsets()
-  const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState("")
+  const hasSentInitial = useRef(false)
+
+  const { messages, status, error, sendMessage, stop } = useChat({
+    id,
+    transport: createChatTransport(),
+    experimental_throttle: 50,
+    chatRequestBody: {
+      selectedChatModel: selectedModel || "openai/gpt-4o-mini",
+    },
+    onError: (err) => {
+      Alert.alert("发送失败", err.message || "请稍后重试")
+    },
+  })
 
   useEffect(() => {
-    if (initialMessage) {
-      setMessages([
-        { id: "1", role: "user", content: initialMessage },
-        {
-          id: "2",
-          role: "assistant",
-          content: "这是一个模拟回复。实际实现时会调用 API 获取 AI 回答。",
-        },
-      ])
+    if (initialMessage && !hasSentInitial.current) {
+      hasSentInitial.current = true
+      sendMessage({ text: initialMessage })
     }
-  }, [initialMessage])
+  }, [initialMessage, sendMessage])
+
+  const isStreaming = status === "streaming" || status === "submitted"
 
   const handleSend = () => {
     if (!inputText.trim()) {
       return
     }
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: inputText.trim(),
-    }
-    const assistantMsg: Message = {
-      id: (Date.now() + 1).toString(),
-      role: "assistant",
-      content: "这是模拟回复，后续会接入真实 API。",
-    }
-    setMessages((prev) => [...prev, userMsg, assistantMsg])
+    sendMessage({ text: inputText.trim() })
     setInputText("")
   }
 
@@ -57,9 +52,15 @@ export default function ChatScreen() {
       className="flex-1 bg-white"
       keyboardVerticalOffset={90}
     >
-      <ChatMessages messages={messages} />
+      <ChatMessages error={error} messages={messages} status={status} />
       <View style={{ paddingBottom: insets.bottom }}>
-        <ChatInputBar onChangeText={setInputText} onSend={handleSend} value={inputText} />
+        <ChatInputBar
+          isStreaming={isStreaming}
+          onChangeText={setInputText}
+          onSend={handleSend}
+          onStop={stop}
+          value={inputText}
+        />
       </View>
     </KeyboardAvoidingView>
   )

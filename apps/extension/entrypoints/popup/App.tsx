@@ -7,7 +7,7 @@ import {
   signIn,
   signOut,
 } from "../../lib/auth-client"
-import { PLATFORM_CONFIG, detectPlatform } from "../../lib/platform-icons"
+import { detectPlatform, PLATFORM_CONFIG } from "../../lib/platform-icons"
 import "./App.css"
 
 interface User {
@@ -123,7 +123,11 @@ function LoginForm({ onLogin }: { onLogin: (user: User) => void }) {
 function SavePage({ user, onLogout }: { user: User; onLogout: () => void }) {
   const [status, setStatus] = useState<Status>("idle")
   const [message, setMessage] = useState("")
-  const [pageInfo, setPageInfo] = useState<{ url: string; title: string; platform: string | null } | null>(null)
+  const [pageInfo, setPageInfo] = useState<{
+    url: string
+    title: string
+    platform: string | null
+  } | null>(null)
 
   useEffect(() => {
     browser.tabs.query({ active: true, currentWindow: true }).then(([tab]) => {

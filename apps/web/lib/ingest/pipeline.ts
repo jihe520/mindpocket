@@ -7,12 +7,12 @@ import { embedding as embeddingTable } from "@/db/schema/embedding"
 import { generateEmbeddings } from "@/lib/ai/embedding"
 import {
   convertBuffer,
-  convertHtml,
   convertUrl,
   extractDescription,
   inferTypeFromExtension,
   inferTypeFromUrl,
 } from "./converter"
+import { convertWithPlatform } from "./platforms"
 import type { IngestResult, IngestStatus } from "./types"
 import { inferPlatform } from "./types"
 
@@ -180,6 +180,7 @@ async function processIngestFile(
 export async function ingestFromExtension(params: IngestExtensionParams): Promise<IngestResult> {
   const { userId, url, html, folderId, title: userTitle } = params
   const bookmarkId = nanoid()
+  const platform = inferPlatform(url)
 
   await db.insert(bookmark).values({
     id: bookmarkId,
@@ -189,12 +190,12 @@ export async function ingestFromExtension(params: IngestExtensionParams): Promis
     title: userTitle || url,
     url,
     sourceType: "extension",
-    platform: inferPlatform(url),
+    platform,
     ingestStatus: "pending" as IngestStatus,
   })
 
   // 触发后台处理，不 await
-  processIngestExtension(bookmarkId, html, url, userTitle).catch(console.error)
+  processIngestExtension(bookmarkId, html, url, platform, userTitle).catch(console.error)
 
   return { bookmarkId, title: userTitle || url, markdown: null, type: "article", status: "pending" }
 }
@@ -203,11 +204,12 @@ async function processIngestExtension(
   bookmarkId: string,
   html: string,
   url: string,
+  platform: string | null,
   userTitle?: string
 ) {
   await updateBookmarkStatus(bookmarkId, "processing")
   try {
-    const result = await convertHtml(html, url)
+    const result = await convertWithPlatform(html, url, platform)
 
     if (!result?.markdown) {
       await updateBookmarkStatus(bookmarkId, "failed", "HTML conversion returned empty result")

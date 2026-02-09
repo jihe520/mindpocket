@@ -16,6 +16,7 @@
     "@ai-sdk/openai": "^3.0.25",
     "@ai-sdk/openai-compatible": "^2.0.28",
     "@ai-sdk/react": "^3.0.70",
+    "@better-auth/expo": "^1.4.18",
     "@neondatabase/serverless": "^1.0.2",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@rive-app/react-webgl2": "^4.26.2",

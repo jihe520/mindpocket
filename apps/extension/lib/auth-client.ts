@@ -20,7 +20,11 @@ export async function getCachedUser(): Promise<{ id: string; name: string; email
   return result[USER_KEY] || null
 }
 
-export async function setCachedUser(user: { id: string; name: string; email: string }): Promise<void> {
+export async function setCachedUser(user: {
+  id: string
+  name: string
+  email: string
+}): Promise<void> {
   await chrome.storage.local.set({ [USER_KEY]: user })
 }
 
