@@ -90,7 +90,22 @@ export async function ingestFromUrl(params: IngestUrlParams): Promise<IngestResu
 async function processIngestUrl(bookmarkId: string, url: string, userTitle?: string) {
   await updateBookmarkStatus(bookmarkId, "processing")
   try {
-    const result = await convertUrl(url)
+    const platform = inferPlatform(url)
+    let result: { title: string | null; markdown: string } | null = null
+
+    if (platform) {
+      // 平台专用解析：先用浏览器获取完整 HTML，再交给平台解析器
+      const { fetchWithBrowser } = await import("./browser")
+      const html = await fetchWithBrowser(url)
+      if (html) {
+        result = await convertWithPlatform(html, url, platform)
+      }
+    }
+
+    // 无平台或平台解析失败时，走通用转换
+    if (!result?.markdown) {
+      result = await convertUrl(url)
+    }
 
     if (!result?.markdown) {
       await updateBookmarkStatus(bookmarkId, "failed", "Conversion returned empty result")

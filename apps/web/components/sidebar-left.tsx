@@ -2,6 +2,7 @@
 
 import {
   Bookmark,
+  Folder,
   Import,
   LayoutDashboard,
   Loader2,
@@ -98,6 +99,7 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
   const [isCreatingFolder, setIsCreatingFolder] = useState(false)
   const [newFolderName, setNewFolderName] = useState("")
   const newFolderInputRef = useRef<HTMLInputElement>(null)
+  const [showAllChats, setShowAllChats] = useState(false)
 
   // 初始加载文件夹和用户信息（只加载一次）
   useEffect(() => {
@@ -359,7 +361,7 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
               )}
               {!isLoadingChats &&
                 chats.length > 0 &&
-                chats.map((chat) => (
+                (showAllChats ? chats : chats.slice(0, 4)).map((chat) => (
                   <ChatMenuItem
                     chat={chat}
                     isActive={pathname === `/chat/${chat.id}`}
@@ -368,13 +370,31 @@ export function SidebarLeft({ ...props }: React.ComponentProps<typeof Sidebar>) 
                     t={t}
                   />
                 ))}
+              {!isLoadingChats && chats.length > 4 && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    className="text-muted-foreground text-xs"
+                    onClick={() => setShowAllChats(!showAllChats)}
+                  >
+                    <MoreHorizontal className="size-4" />
+                    <span>
+                      {showAllChats
+                        ? t.sidebar.showLess
+                        : `${t.sidebar.showMore} (${chats.length - 4})`}
+                    </span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
         {/* 文件夹分类 */}
-        <SidebarGroup>
-          <SidebarGroupLabel>{t.sidebar.folders}</SidebarGroupLabel>
+        <SidebarGroup className="-mt-5">
+          <SidebarGroupLabel>
+            <Folder className="mr-1 size-3" />
+            {t.sidebar.folders}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {isLoadingFolders && (

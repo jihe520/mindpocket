@@ -31,6 +31,8 @@ export const zh = {
     deleteChat: "删除对话",
     deleteFolder: "删除文件夹",
     deleteBookmark: "删除书签",
+    showMore: "显示更多",
+    showLess: "收起",
   },
   settings: {
     title: "设置",

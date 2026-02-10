@@ -91,7 +91,7 @@ export function Chat({
   const isEmpty = messages.length === 0
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col px-6">
       {isEmpty ? (
         <div className="flex flex-1 flex-col items-center justify-start pt-40">
           <div className="animate-in fade-in slide-in-from-bottom-4 w-full max-w-2xl duration-500">

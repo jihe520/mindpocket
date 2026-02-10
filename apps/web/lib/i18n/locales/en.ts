@@ -32,6 +32,8 @@ export const en: TranslationDict = {
     deleteChat: "Delete chat",
     deleteFolder: "Delete folder",
     deleteBookmark: "Delete bookmark",
+    showMore: "Show more",
+    showLess: "Show less",
   },
   settings: {
     title: "Settings",
