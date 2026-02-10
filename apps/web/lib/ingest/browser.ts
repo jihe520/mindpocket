@@ -1,3 +1,6 @@
+const CHROMIUM_PACK_URL =
+  "https://github.com/Sparticuz/chromium/releases/download/v143.0.0/chromium-v143.0.0-pack.tar"
+
 export async function fetchWithBrowser(url: string): Promise<string | null> {
   let browser: import("puppeteer-core").Browser | null = null
 
@@ -11,14 +14,12 @@ export async function fetchWithBrowser(url: string): Promise<string | null> {
         headless: true,
       })
     } else {
-      const chromium = (await import("@sparticuz/chromium")).default
+      const chromium = (await import("@sparticuz/chromium-min")).default
+      chromium.setGraphicsMode = false
       browser = await puppeteer.launch({
-        args: puppeteer.defaultArgs({
-          args: chromium.args,
-          headless: "shell",
-        }),
+        args: chromium.args,
         defaultViewport: { width: 1920, height: 1080 },
-        executablePath: await chromium.executablePath(),
+        executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
         headless: "shell",
       })
     }
