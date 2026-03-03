@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "dotenv -e .env.local -- tsx scripts/ensure-extensions.ts && drizzle-kit push --force && next build",
+    "build": "tsx scripts/ensure-extensions.ts && drizzle-kit push --force && next build",
     "build-without-db": "next build",
     "start": "next start",
     "lint": "next lint",
