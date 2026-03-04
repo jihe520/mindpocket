@@ -1,5 +1,6 @@
 "use client"
 
+import { SEARCH_MODES, type SearchMatchReason, type SearchResultItem } from "@repo/types"
 import { Globe, Hash, Loader2, Sparkles } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
@@ -13,23 +14,7 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import { useT } from "@/lib/i18n"
-import type { SearchMatchReason, SearchMode } from "@/lib/search/types"
 import { useUIStore } from "@/stores"
-
-interface SearchResult {
-  id: string
-  title: string
-  description: string | null
-  url: string | null
-  type: string
-  folderName: string | null
-  folderEmoji: string | null
-  createdAt: string
-  score: number
-  matchReasons: SearchMatchReason[]
-}
-
-const SEARCH_MODES: SearchMode[] = ["keyword", "semantic", "hybrid"]
 
 export function GlobalSearchDialog() {
   const router = useRouter()
@@ -37,7 +22,7 @@ export function GlobalSearchDialog() {
   const { searchDialog, closeSearchDialog, setSearchMode } = useUIStore()
   const { open, mode } = searchDialog
   const [input, setInput] = useState("")
-  const [results, setResults] = useState<SearchResult[]>([])
+  const [results, setResults] = useState<SearchResultItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [fallbackReason, setFallbackReason] = useState<string | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -97,7 +82,7 @@ export function GlobalSearchDialog() {
         }
 
         const data = (await response.json()) as {
-          items: SearchResult[]
+          items: SearchResultItem[]
           fallbackReason?: string
         }
 

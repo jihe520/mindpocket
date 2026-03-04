@@ -1,5 +1,6 @@
 "use client"
 
+import type { AiProvider } from "@repo/types"
 import { Bot, Check, Loader2, Pencil, Plug, Plus, Star, Trash2, X } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -16,18 +17,9 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useT } from "@/lib/i18n"
 
-interface AiProvider {
-  id: string
-  name: string
-  type: string
-  baseUrl: string
-  modelId: string
-  isDefault: boolean
-}
-
 interface FormData {
   name: string
-  type: "chat" | "embedding"
+  type: AiProvider["type"]
   baseUrl: string
   apiKey: string
   modelId: string
@@ -147,7 +139,7 @@ export function SettingsAiModel() {
     setEditingId(provider.id)
     setForm({
       name: provider.name,
-      type: provider.type as "chat" | "embedding",
+      type: provider.type,
       baseUrl: provider.baseUrl,
       apiKey: "••••••••••••••••••••••••",
       modelId: provider.modelId,

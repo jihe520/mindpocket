@@ -1,32 +1,8 @@
+import type { FetchBookmarksParams, FetchBookmarksResult } from "@repo/types"
 import { requestJson, requestVoid } from "./api-client"
 
-export interface BookmarkItem {
-  id: string
-  type: string
-  title: string
-  description: string | null
-  url: string | null
-  coverImage: string | null
-  isFavorite: boolean
-  createdAt: string
-  folderId: string | null
-  folderName: string | null
-  folderEmoji: string | null
-  platform: string | null
-}
-
-interface FetchBookmarksParams {
-  type?: string
-  platform?: string
-  limit?: number
-  offset?: number
-}
-
-interface FetchBookmarksResult {
-  bookmarks: BookmarkItem[]
-  total: number
-  hasMore: boolean
-}
+// Re-export for backward compatibility
+export type { BookmarkItem, FetchBookmarksParams, FetchBookmarksResult } from "@repo/types"
 
 export function fetchBookmarks(params: FetchBookmarksParams = {}): Promise<FetchBookmarksResult> {
   const searchParams = new URLSearchParams()

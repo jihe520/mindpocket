@@ -65,7 +65,7 @@ MindPocket 将你的收藏内容进行分类存储，并通过 AI Agent 进行 R
    - 点击 "Deploy"
    - 在 "Integrations" 选项卡中，添加 Neon 集成，创建一个新的免费数据库实例，并连接到你的项目（Upstash 免费 Redis 也可以添加）
    - 连接 Vercel Blob 存储
-   - 在 "Settings" → "Environment Variables" 中，添加环境变量（参考 `.env.example`）
+   - 在 "Settings" → "Environment Variables" 中，添加环境变量（参考 [`apps/web/.env.example`](./apps/web/.env.example)）
 
 3. **初始化数据库**
    - 部署完成后，数据库表会自动创建
@@ -85,7 +85,7 @@ MindPocket 将你的收藏内容进行分类存储，并通过 AI Agent 进行 R
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/mindpocket.git
+git clone https://github.com/jihe520/mindpocket
 cd mindpocket
 
 # 安装依赖
@@ -93,6 +93,7 @@ pnpm install
 
 # 配置环境变量
 cd apps/web
+# 模板文件：apps/web/.env.example
 cp .env.example .env.local
 # 编辑 .env.local 填入你的配置
 

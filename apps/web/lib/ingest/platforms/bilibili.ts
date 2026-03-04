@@ -1,5 +1,5 @@
+import type { BilibiliCredentials } from "@repo/types"
 import type { ConvertResult } from "./index"
-import type { BilibiliCredentials } from "@/db/queries/bilibili-credentials"
 
 const BV_URL_REGEX = /\/video\/(BV[A-Za-z0-9]+)/
 const BILIBILI_SUFFIX_REGEX = /_哔哩哔哩.*$/

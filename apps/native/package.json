@@ -47,6 +47,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.23.7",
+    "@repo/types": "workspace:*",
     "@types/react": "~19.1.17",
     "typescript": "5.9.3"
   },

@@ -1,5 +1,6 @@
 "use client"
 
+import type { AiProvider } from "@repo/types"
 import { Bot, Check, Settings } from "lucide-react"
 import { useEffect, useState } from "react"
 import {
@@ -14,7 +15,6 @@ import {
   ModelSelectorTrigger,
 } from "@/components/ai-elements/model-selector"
 import { PromptInputButton } from "@/components/ai-elements/prompt-input"
-import type { ChatModel } from "@/lib/ai/models"
 import { useT } from "@/lib/i18n"
 
 export function ChatModelSelector({
@@ -26,12 +26,12 @@ export function ChatModelSelector({
 }) {
   const t = useT()
   const [open, setOpen] = useState(false)
-  const [models, setModels] = useState<ChatModel[]>([])
+  const [models, setModels] = useState<AiProvider[]>([])
 
   useEffect(() => {
     fetch("/api/ai-providers?type=chat")
       .then((res) => res.json())
-      .then((data: ChatModel[]) => {
+      .then((data: AiProvider[]) => {
         setModels(data.filter((m) => m.type === "chat"))
       })
       .catch(() => {

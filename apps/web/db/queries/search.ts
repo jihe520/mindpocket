@@ -1,3 +1,9 @@
+import {
+  parseSearchMode,
+  type SearchMatchReason,
+  type SearchMode,
+  type SearchScope,
+} from "@repo/types"
 import { and, cosineDistance, desc, eq, gt, ilike, inArray, or, type SQL, sql } from "drizzle-orm"
 import { db } from "@/db/client"
 import { getDefaultProvider } from "@/db/queries/ai-provider"
@@ -7,8 +13,6 @@ import { folder } from "@/db/schema/folder"
 import { bookmarkTag, tag } from "@/db/schema/tag"
 import { generateEmbedding } from "@/lib/ai/embedding"
 import { getEmbeddingModel } from "@/lib/ai/provider"
-import type { SearchMatchReason, SearchMode, SearchScope } from "@/lib/search/types"
-import { parseSearchMode } from "@/lib/search/types"
 
 const MAX_INTERNAL_CANDIDATES = 50
 const MIN_SEMANTIC_QUERY_LENGTH = 2

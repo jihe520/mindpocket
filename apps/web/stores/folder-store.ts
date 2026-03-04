@@ -3,9 +3,9 @@
  * Includes 10-minute cache and optimistic updates
  */
 
+import type { FolderItem } from "@repo/types"
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
-import type { FolderItem } from "./types"
 
 interface FolderState {
   folders: FolderItem[]

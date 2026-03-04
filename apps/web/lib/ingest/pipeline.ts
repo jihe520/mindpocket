@@ -1,3 +1,4 @@
+import type { IngestResult, IngestStatus } from "@repo/types"
 import { put } from "@vercel/blob"
 import { eq } from "drizzle-orm"
 import { nanoid } from "nanoid"
@@ -16,7 +17,6 @@ import {
   inferTypeFromUrl,
 } from "./converter"
 import { convertWithoutHtml, convertWithPlatform, needsBrowser } from "./platforms"
-import type { IngestResult, IngestStatus } from "./types"
 import { inferPlatform } from "./types"
 
 const FILE_EXT_REGEX = /\.[^.]+$/
@@ -255,7 +255,7 @@ async function processIngestExtension(
 ) {
   await updateBookmarkStatus(bookmarkId, "processing")
   try {
-    let result = null
+    let result: { title: string | null; markdown: string } | null = null
 
     if (platform && !needsBrowser(platform)) {
       // 对于 bilibili，尝试获取用户凭证

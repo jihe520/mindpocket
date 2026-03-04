@@ -4,10 +4,10 @@
  * Includes 5-minute cache for chat list
  */
 
+import type { ChatItem } from "@repo/types"
 import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
 import { createPersistConfig } from "./middleware/persist-config"
-import type { ChatItem } from "./types"
 
 interface ChatState {
   chats: ChatItem[]

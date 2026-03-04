@@ -1,5 +1,6 @@
 "use client"
 
+import type { BookmarkItem } from "@repo/types"
 import {
   ExternalLink,
   FileText,
@@ -24,21 +25,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
-
-export interface BookmarkItem {
-  id: string
-  type: string
-  title: string
-  description: string | null
-  url: string | null
-  coverImage: string | null
-  isFavorite: boolean
-  createdAt: string
-  folderId: string | null
-  folderName: string | null
-  folderEmoji: string | null
-  platform: string | null
-}
 
 const typeIcons: Record<string, typeof Link2> = {
   link: Link2,

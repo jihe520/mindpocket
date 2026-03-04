@@ -16,6 +16,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import type { ChatItem, FolderItem } from "@repo/types"
 import {
   Bookmark,
   Folder,
@@ -78,7 +79,6 @@ import {
 } from "@/components/ui/sidebar"
 import { useT } from "@/lib/i18n"
 import { useChatStore, useFolderStore, useUIStore, useUserStore } from "@/stores"
-import type { ChatItem, FolderItem } from "@/stores/types"
 
 const socialLinks = [
   { name: "GitHub", icon: GithubIcon, url: "https://github.com/jihe520/mindpocket" },

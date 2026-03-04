@@ -4,10 +4,10 @@
  * Partial persistence (filters)
  */
 
+import type { BookmarkFilters, BookmarkItem, BookmarkPagination, CacheMap } from "@repo/types"
 import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
 import { createPersistConfig } from "./middleware/persist-config"
-import type { BookmarkFilters, BookmarkItem, BookmarkPagination, CacheMap } from "./types"
 
 interface BookmarkState {
   bookmarks: BookmarkItem[]
@@ -171,7 +171,10 @@ export const useBookmarkStore = create<BookmarkState>()(
       createPersistConfig("bookmark", {
         partialize: (state) =>
           ({
-            filters: state.filters,
+            filters: {
+              type: state.filters.type,
+              platform: state.filters.platform,
+            },
           }) as BookmarkState,
       })
     ),

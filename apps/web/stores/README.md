@@ -376,7 +376,7 @@ useEffect(() => {
 
 ## 类型定义
 
-所有类型定义集中在 `stores/types.ts`：
+共享领域类型统一来自 `@repo/types`：
 - `UserInfo`
 - `ChatItem`
 - `FolderItem`

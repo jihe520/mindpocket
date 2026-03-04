@@ -1,7 +1,7 @@
+import { parseSearchMode } from "@repo/types"
 import { headers } from "next/headers"
 import { searchBookmarks } from "@/db/queries/search"
 import { auth } from "@/lib/auth"
-import { parseSearchMode } from "@/lib/search/types"
 
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() })

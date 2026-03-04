@@ -1,14 +1,9 @@
+import type { BilibiliCredentials } from "@repo/types"
 import { eq } from "drizzle-orm"
 import { nanoid } from "nanoid"
+import { decrypt, encrypt } from "@/lib/crypto"
 import { db } from "../client"
 import { bilibiliCredentials } from "../schema"
-import { decrypt, encrypt } from "@/lib/crypto"
-
-export interface BilibiliCredentials {
-  sessdata: string
-  biliJct: string
-  buvid3: string
-}
 
 export async function getBilibiliCredentials(userId: string): Promise<BilibiliCredentials | null> {
   const result = await db

@@ -1,28 +1,12 @@
+import type { SearchMode, SearchResponse } from "@repo/types"
 import { requestJson } from "./api-client"
 
-export interface SearchResultItem {
-  id: string
-  title: string
-  description: string | null
-  url: string | null
-  type: string
-  folderName: string | null
-  folderEmoji: string | null
-  createdAt: string
-  score: number
-  matchReasons: string[]
-  platform?: string | null
-}
-
-export interface SearchResponse {
-  items: SearchResultItem[]
-  modeUsed: "keyword" | "semantic" | "hybrid"
-  fallbackReason?: string
-}
+// Re-export for backward compatibility
+export type { SearchMode, SearchResponse, SearchResultItem } from "@repo/types"
 
 export function searchBookmarks(params: {
   q: string
-  mode?: "keyword" | "hybrid"
+  mode?: SearchMode
   limit?: number
   signal?: AbortSignal
 }): Promise<SearchResponse> {

@@ -1,10 +1,10 @@
+import { INGEST_STATUSES } from "@repo/types"
 import { and, desc, eq, inArray, lt, type SQL } from "drizzle-orm"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 import { db } from "@/db/client"
 import { bookmark } from "@/db/schema/bookmark"
 import { auth } from "@/lib/auth"
-import { INGEST_STATUSES } from "@/lib/ingest/types"
 
 const STALE_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
 

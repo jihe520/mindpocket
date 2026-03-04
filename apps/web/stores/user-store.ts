@@ -3,9 +3,9 @@
  * No persistence (fetched from server)
  */
 
+import type { UserInfo } from "@repo/types"
 import { create } from "zustand"
 import { devtools } from "zustand/middleware"
-import type { UserInfo } from "./types"
 
 interface UserState {
   userInfo: UserInfo

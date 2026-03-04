@@ -1,8 +1,8 @@
+import type { BilibiliCredentials } from "@repo/types"
 import { convertHtml } from "../converter"
 import { convertBilibili } from "./bilibili"
 import { convertWechat } from "./wechat"
 import { convertXiaohongshu } from "./xiaohongshu"
-import type { BilibiliCredentials } from "@/db/queries/bilibili-credentials"
 
 export interface ConvertResult {
   title: string | null

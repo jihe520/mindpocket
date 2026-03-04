@@ -1,5 +1,6 @@
 "use client"
 
+import type { BookmarkItem, ViewMode } from "@repo/types"
 import {
   ExternalLink,
   FileText,
@@ -16,7 +17,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
-import { BookmarkCard, type BookmarkItem } from "@/components/bookmark-card"
+import { BookmarkCard } from "@/components/bookmark-card"
 import { hasPlatformIcon, PLATFORM_CONFIG, PlatformIcon } from "@/components/icons/platform-icons"
 import { MoveToFolderDialog } from "@/components/move-to-folder-dialog"
 import { Button } from "@/components/ui/button"
@@ -29,7 +30,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
-import { useBookmarkStore, useUIStore, type ViewMode } from "@/stores"
+import { useBookmarkStore, useUIStore } from "@/stores"
 
 const typeFilters = [
   { value: "all", label: "全部", icon: null },
@@ -70,17 +71,10 @@ export function BookmarkGrid({ refreshKey, folderId }: { refreshKey?: number; fo
     useBookmarkStore()
   const { bookmarkViewMode, setBookmarkViewMode } = useUIStore()
 
-  // Set folderId filter if provided
+  // Keep folder filter scoped to current page context.
   useEffect(() => {
-    if (folderId) {
-      setFilters({ folderId })
-    }
+    setFilters({ folderId })
   }, [folderId, setFilters])
-
-  // Initial fetch
-  useEffect(() => {
-    fetchBookmarks()
-  }, [fetchBookmarks])
 
   // Refresh when refreshKey changes
   useEffect(() => {

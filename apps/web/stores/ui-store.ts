@@ -3,12 +3,15 @@
  * Partial persistence (viewMode, sidebarExpanded)
  */
 
+import {
+  parseSearchMode,
+  type SearchDialogState,
+  type SearchMode,
+  type ViewMode,
+} from "@repo/types"
 import { create } from "zustand"
 import { devtools, persist } from "zustand/middleware"
-import type { SearchMode } from "@/lib/search/types"
-import { parseSearchMode } from "@/lib/search/types"
 import { createPersistConfig } from "./middleware/persist-config"
-import type { SearchDialogState, ViewMode } from "./types"
 
 interface UIState {
   // Search dialog
