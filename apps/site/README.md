@@ -18,6 +18,16 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Environment Variables
+
+Create `apps/site/.env.local` and set:
+
+```bash
+NEXT_PUBLIC_APP_URL=http://127.0.0.1:3000
+```
+
+Use your deployed `apps/web` URL in production so the marketing site login and signup buttons resolve correctly.
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

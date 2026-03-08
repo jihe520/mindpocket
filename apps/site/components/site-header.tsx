@@ -4,6 +4,7 @@ import Link from "next/link"
 import React from "react"
 import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
+import { appLinks } from "@/lib/app-links"
 import { useSiteI18n } from "@/lib/site-i18n"
 import { cn } from "@/lib/utils"
 
@@ -103,17 +104,17 @@ export const SiteHeader = () => {
                   size="sm"
                   variant="outline"
                 >
-                  <Link href="#">
+                  <Link href={appLinks.login}>
                     <span>{t.nav.login}</span>
                   </Link>
                 </Button>
                 <Button asChild className={cn(isScrolled && "lg:hidden")} size="sm">
-                  <Link href="#">
+                  <Link href={appLinks.signup}>
                     <span>{t.nav.signup}</span>
                   </Link>
                 </Button>
                 <Button asChild className={cn(isScrolled ? "lg:inline-flex" : "hidden")} size="sm">
-                  <Link href="#">
+                  <Link href={appLinks.signup}>
                     <span>{t.nav.getStarted}</span>
                   </Link>
                 </Button>

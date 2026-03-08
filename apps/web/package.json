@@ -11,7 +11,7 @@
     "lint": "biome lint .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
+    "db:push": "dotenv -e .env.local -- tsx scripts/ensure-extensions.ts && drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
