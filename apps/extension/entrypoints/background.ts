@@ -1,7 +1,26 @@
+interface SavePayload {
+  url: string
+  html: string
+  title?: string
+}
+
+function isSavePayload(value: unknown): value is SavePayload {
+  if (typeof value !== "object" || value === null) {
+    return false
+  }
+
+  const candidate = value as Record<string, unknown>
+  return (
+    typeof candidate.url === "string" &&
+    typeof candidate.html === "string" &&
+    (typeof candidate.title === "string" || typeof candidate.title === "undefined")
+  )
+}
+
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message.type === "SAVE_PAGE") {
-      handleSavePage().then(sendResponse)
+      handleSavePage(message.payload).then(sendResponse)
       return true
     }
   })
@@ -16,17 +35,23 @@ async function notify(title: string, message: string) {
   })
 }
 
-async function handleSavePage() {
-  try {
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
-    if (!tab?.id) {
-      return { success: false, error: "No active tab" }
-    }
+async function requestPageContent(): Promise<SavePayload> {
+  const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+  if (!tab?.id) {
+    throw new Error("No active tab")
+  }
 
-    const response = await browser.tabs.sendMessage(tab.id, { type: "GET_PAGE_CONTENT" })
-    if (!response?.html) {
-      return { success: false, error: "Failed to get page content" }
-    }
+  const response = await browser.tabs.sendMessage(tab.id, { type: "GET_PAGE_CONTENT" })
+  if (!isSavePayload(response)) {
+    throw new Error("Failed to get page content")
+  }
+
+  return response
+}
+
+async function handleSavePage(payload?: unknown) {
+  try {
+    const response = isSavePayload(payload) ? payload : await requestPageContent()
 
     // TODO: 来源，更多参数
     const { saveBookmark } = await import("../lib/auth-client")

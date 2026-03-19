@@ -12,7 +12,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "user:reset-password": "tsx scripts/reset-password.ts"
   },
   "dependencies": {
     "@ai-sdk/devtools": "^0.0.12",

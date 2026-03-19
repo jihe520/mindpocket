@@ -31,7 +31,7 @@ export {
 
 /** URL 导入的请求验证 Schema */
 export const ingestUrlSchema = z.object({
-  url: z.string().url(),
+  url: z.url(),
   folderId: z.string().trim().min(1).optional(),
   title: z.string().optional(),
   clientSource: z.enum(CLIENT_SOURCES),
@@ -39,7 +39,7 @@ export const ingestUrlSchema = z.object({
 
 /** 浏览器扩展导入的请求验证 Schema */
 export const ingestExtensionSchema = z.object({
-  url: z.string().url(),
+  url: z.url(),
   html: z.string().min(1).optional(),
   title: z.string().optional(),
   folderId: z.string().trim().min(1).optional(),
@@ -72,6 +72,9 @@ export const EXTENSION_TYPE_MAP: Record<string, BookmarkType> = {
   ".ipynb": "document",
   ".zip": "other",
 }
+
+/** 允许上传并进入 ingest 流程的文件扩展名列表 */
+export const ALLOWED_INGEST_FILE_EXTENSIONS = Object.keys(EXTENSION_TYPE_MAP)
 
 // 重新导出 inferPlatform
 export const inferPlatform = inferPlatformBase

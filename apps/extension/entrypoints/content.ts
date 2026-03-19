@@ -1,3 +1,121 @@
+interface SavePayload {
+  url: string
+  html: string
+  title?: string
+}
+
+const CANONICAL_STATUS_PATH_REGEX = /^\/[^/]+\/status\/\d+$/
+const WEB_STATUS_PATH_REGEX = /^\/i\/web\/status\/\d+$/
+
+function findTweetRoot(bookmarkBtn: Element): HTMLElement | null {
+  const tweet =
+    bookmarkBtn.closest('article[data-testid="tweet"]') ??
+    bookmarkBtn.closest('article[role="article"]')
+
+  return tweet instanceof HTMLElement ? tweet : null
+}
+
+function toAbsoluteUrl(href: string | null): string | null {
+  if (!href) {
+    return null
+  }
+
+  try {
+    return new URL(href, window.location.origin).toString()
+  } catch {
+    return null
+  }
+}
+
+function isCanonicalStatusPath(pathname: string): boolean {
+  return CANONICAL_STATUS_PATH_REGEX.test(pathname) || WEB_STATUS_PATH_REGEX.test(pathname)
+}
+
+function findCanonicalStatusLink(tweetRoot: HTMLElement): string | null {
+  const timeHref = tweetRoot
+    .querySelector("time")
+    ?.closest('a[href*="/status/"]')
+    ?.getAttribute("href")
+
+  const absoluteTimeHref = toAbsoluteUrl(timeHref ?? null)
+  if (absoluteTimeHref) {
+    return absoluteTimeHref
+  }
+
+  const links = tweetRoot.querySelectorAll('a[href*="/status/"]')
+  for (const link of links) {
+    if (!(link instanceof HTMLAnchorElement)) {
+      continue
+    }
+
+    const href = toAbsoluteUrl(link.getAttribute("href"))
+    if (!href) {
+      continue
+    }
+
+    const url = new URL(href)
+    if (isCanonicalStatusPath(url.pathname)) {
+      return url.toString()
+    }
+  }
+
+  return null
+}
+
+function extractTweetPermalink(tweetRoot: HTMLElement): string {
+  return findCanonicalStatusLink(tweetRoot) ?? window.location.href
+}
+
+function extractTweetTitle(tweetRoot: HTMLElement): string {
+  const author =
+    tweetRoot.querySelector('[data-testid="User-Name"] a[href^="/"]')?.textContent?.trim() ?? ""
+  const text =
+    tweetRoot
+      .querySelector('[data-testid="tweetText"]')
+      ?.textContent?.replace(/\s+/g, " ")
+      .trim() ?? ""
+
+  if (author && text) {
+    return `${author}: ${text.slice(0, 80)}`
+  }
+
+  if (text) {
+    return text.slice(0, 80)
+  }
+
+  return document.title
+}
+
+function extractTweetHtml(tweetRoot: HTMLElement): string {
+  const clone = tweetRoot.cloneNode(true)
+  if (!(clone instanceof HTMLElement)) {
+    return tweetRoot.outerHTML
+  }
+
+  for (const node of clone.querySelectorAll(".mindpocket-host")) {
+    node.remove()
+  }
+
+  return clone.outerHTML
+}
+
+function buildSavePayload(bookmarkBtn: Element): SavePayload {
+  const tweetRoot = findTweetRoot(bookmarkBtn)
+  if (!tweetRoot) {
+    return {
+      url: window.location.href,
+      title: document.title,
+      html: document.documentElement.outerHTML,
+    }
+  }
+
+  return {
+    url: extractTweetPermalink(tweetRoot),
+    title: extractTweetTitle(tweetRoot),
+    html: extractTweetHtml(tweetRoot),
+  }
+}
+
 export default defineContentScript({
   matches: ["<all_urls>"],
   main() {
@@ -14,7 +132,7 @@ export default defineContentScript({
     })
 
     // 创建 MindPocket 按钮
-    function createMindPocketButton() {
+    function createMindPocketButton(bookmarkBtn: Element) {
       const host = document.createElement("div")
       host.style.display = "inline-flex"
       host.style.alignItems = "center"
@@ -81,7 +199,8 @@ export default defineContentScript({
         btn.classList.add("saving")
 
         try {
-          const res = await browser.runtime.sendMessage({ type: "SAVE_PAGE" })
+          const payload = buildSavePayload(bookmarkBtn)
+          const res = await browser.runtime.sendMessage({ type: "SAVE_PAGE", payload })
           if (res?.success) {
             btn.classList.add("saved")
             btn.title = "已收藏到 MindPocket"
@@ -117,7 +236,7 @@ export default defineContentScript({
         }
 
         // 创建 MindPocket 按钮
-        const mpBtn = createMindPocketButton()
+        const mpBtn = createMindPocketButton(bookmarkBtn)
         mpBtn.className = "mindpocket-host"
 
         // 插入到书签按钮前面
