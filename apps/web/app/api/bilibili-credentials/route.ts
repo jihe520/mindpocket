@@ -6,6 +6,8 @@ import {
 } from "@/db/queries/bilibili-credentials"
 import { auth } from "@/lib/auth"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   const session = await auth.api.getSession({
     headers: await import("next/headers").then((m) => m.headers()),

@@ -7,6 +7,8 @@ import { embedding } from "@/db/schema/embedding"
 import { folder } from "@/db/schema/folder"
 import { auth } from "@/lib/auth"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
   const userId = session!.user!.id

@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres"
 import { Pool } from "pg"
+import { getDatabaseUrl } from "../lib/database-url"
 import { userAiProvider, userAiProviderRelations } from "./schema/ai-provider"
 import {
   account,
@@ -45,22 +46,22 @@ const schema = {
   userAiProviderRelations,
 }
 
-const connectionString = process.env.DATABASE_URL
-
-if (!connectionString) {
-  throw new Error("DATABASE_URL is missing. Set it in Vercel or apps/web/.env.local")
-}
-
 declare global {
   // eslint-disable-next-line no-var
   var __mindpocketDbPool: Pool | undefined
+  // eslint-disable-next-line no-var
+  var __mindpocketDbInstance: Database | undefined
+}
+
+function getConnectionString() {
+  return getDatabaseUrl()
 }
 
 function createPool() {
-  return new Pool({ connectionString })
+  return new Pool({ connectionString: getConnectionString() })
 }
 
-const pool = (() => {
+function getPool() {
   if (process.env.NODE_ENV === "production") {
     return createPool()
   }
@@ -70,6 +71,40 @@ const pool = (() => {
   }
 
   return globalThis.__mindpocketDbPool
-})()
+}
 
-export const db = drizzle(pool, { schema })
+function createDb() {
+  return drizzle(getPool(), { schema })
+}
+
+type Database = ReturnType<typeof createDb>
+
+function getDb() {
+  if (process.env.NODE_ENV === "production") {
+    return createDb()
+  }
+
+  if (!globalThis.__mindpocketDbInstance) {
+    globalThis.__mindpocketDbInstance = createDb()
+  }
+
+  return globalThis.__mindpocketDbInstance
+}
+
+// Delay pool creation until the database is actually used at runtime.
+export const db = new Proxy({} as Database, {
+  get(_target, prop, receiver) {
+    const database = getDb()
+    const value = Reflect.get(database as object, prop, receiver)
+    return typeof value === "function" ? value.bind(database) : value
+  },
+  has(_target, prop) {
+    return prop in getDb()
+  },
+  ownKeys() {
+    return Reflect.ownKeys(getDb() as object)
+  },
+  getOwnPropertyDescriptor(_target, prop) {
+    return Object.getOwnPropertyDescriptor(getDb() as object, prop)
+  },
+})

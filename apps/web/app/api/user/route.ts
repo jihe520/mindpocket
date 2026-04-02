@@ -1,5 +1,7 @@
 import { requireApiSession } from "@/lib/api-auth"
 
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   const result = await requireApiSession()
   if (!result.ok) {

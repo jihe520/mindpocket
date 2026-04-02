@@ -20,6 +20,8 @@ import { getChatModel } from "@/lib/ai/provider"
 import { auth } from "@/lib/auth"
 import { corsPreflight, withCors } from "@/lib/cors"
 
+export const dynamic = "force-dynamic"
+
 export const maxDuration = 60
 
 function getStreamContext() {

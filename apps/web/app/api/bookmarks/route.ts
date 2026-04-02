@@ -3,6 +3,8 @@ import { getBookmarksByUserId } from "@/db/queries/bookmark"
 import { searchBookmarks } from "@/db/queries/search"
 import { requireApiSession } from "@/lib/api-auth"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(request: Request) {
   const sessionResult = await requireApiSession()
   if (!sessionResult.ok) {

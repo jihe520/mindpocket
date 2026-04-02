@@ -1,7 +1,3 @@
-import dotenv from "dotenv"
-
-dotenv.config({ path: ".env.local" })
-
 async function seed() {
   const { nanoid } = await import("nanoid")
   const { db } = await import("../db/client")

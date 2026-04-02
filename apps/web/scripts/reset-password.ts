@@ -1,10 +1,5 @@
 import { hashPassword } from "better-auth/crypto"
-import { config } from "dotenv"
 import { and, eq } from "drizzle-orm"
-
-config({
-  path: ".env.local",
-})
 
 async function resetPassword() {
   const email = process.argv[2]

@@ -3,6 +3,9 @@ import { NextResponse } from "next/server"
 import { db } from "@/db/client"
 import { user } from "@/db/schema/auth"
 
+// This route depends on live database state and must run at request time.
+export const dynamic = "force-dynamic"
+
 export async function GET() {
   try {
     const result = await db.select({ count: count() }).from(user)

@@ -6,6 +6,8 @@ import { bookmark } from "@/db/schema/bookmark"
 import { folder } from "@/db/schema/folder"
 import { auth } from "@/lib/auth"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session?.user?.id) {

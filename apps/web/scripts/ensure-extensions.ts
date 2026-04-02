@@ -1,18 +1,9 @@
-import { config } from "dotenv"
 import { Client } from "pg"
-
-config({
-  path: ".env.local",
-})
+import { getDatabaseUrl } from "../lib/database-url"
 
 async function main() {
-  const databaseUrl = process.env.DATABASE_URL
-  if (!databaseUrl) {
-    throw new Error("DATABASE_URL is missing. Set it in Vercel or apps/web/.env.local")
-  }
-
   const client = new Client({
-    connectionString: databaseUrl,
+    connectionString: getDatabaseUrl(),
   })
 
   try {

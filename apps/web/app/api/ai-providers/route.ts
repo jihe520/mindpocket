@@ -3,6 +3,8 @@ import { z } from "zod"
 import { createProvider, getProvidersByUserId } from "@/db/queries/ai-provider"
 import { auth } from "@/lib/auth"
 
+export const dynamic = "force-dynamic"
+
 const createSchema = z.object({
   name: z.string().min(1).max(100),
   type: z.enum(["chat", "embedding"]),

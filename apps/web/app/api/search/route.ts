@@ -3,6 +3,8 @@ import { headers } from "next/headers"
 import { searchBookmarks } from "@/db/queries/search"
 import { auth } from "@/lib/auth"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(request: Request) {
   const session = await auth.api.getSession({ headers: await headers() })
   const userId = session!.user!.id

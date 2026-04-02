@@ -1,4 +1,3 @@
-import "dotenv/config"
 import { hashPassword } from "better-auth/crypto"
 import { nanoid } from "nanoid"
 import { db } from "../db/client"

@@ -3,6 +3,8 @@ import { redirect } from "next/navigation"
 import { DeviceApprovalCard } from "@/components/device-approval-card"
 import { auth } from "@/lib/auth"
 
+export const dynamic = "force-dynamic"
+
 function buildLoginRedirect(userCode: string) {
   const target = userCode ? `/device?user_code=${encodeURIComponent(userCode)}` : "/device"
   return `/login?redirect=${encodeURIComponent(target)}`

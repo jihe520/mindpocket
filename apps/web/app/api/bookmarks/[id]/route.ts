@@ -6,6 +6,8 @@ import { bookmark } from "@/db/schema/bookmark"
 import { folder } from "@/db/schema/folder"
 import { requireApiSession } from "@/lib/api-auth"
 
+export const dynamic = "force-dynamic"
+
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const result = await requireApiSession()
   if (!result.ok) {

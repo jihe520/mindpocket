@@ -7,6 +7,8 @@ import { db } from "@/db/client"
 import { bookmark } from "@/db/schema/bookmark"
 import { auth } from "@/lib/auth"
 
+export const dynamic = "force-dynamic"
+
 const STALE_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
 
 export async function GET(request: Request) {
