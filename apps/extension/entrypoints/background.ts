@@ -18,9 +18,11 @@ function isSavePayload(value: unknown): value is SavePayload {
 }
 
 export default defineBackground(() => {
-  browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "SAVE_PAGE") {
-      handleSavePage(message.payload).then(sendResponse)
+      // 从 sender 获取来源 tab，站内按钮和 popup 都能用
+      const senderTabId = sender.tab?.id
+      handleSavePage(message.payload, senderTabId).then(sendResponse)
       return true
     }
     if (message.type === "START_DEVICE_POLL") {
@@ -30,16 +32,16 @@ export default defineBackground(() => {
   })
 })
 
-async function notify(title: string, message: string) {
-  await browser.notifications.create({
-    type: "basic",
-    iconUrl: browser.runtime.getURL("/icon/128.png"),
-    title,
-    message,
-  })
+// 通过 content script 在页面内显示 toast 通知
+async function showToast(tabId: number, title: string, message: string, type: "success" | "error") {
+  try {
+    await browser.tabs.sendMessage(tabId, { type: "SHOW_TOAST", title, message, toastType: type })
+  } catch (err) {
+    console.error("[MindPocket] Toast 发送失败:", err)
+  }
 }
 
-async function requestPageContent(): Promise<SavePayload> {
+async function requestPageContent(): Promise<{ payload: SavePayload; tabId: number }> {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
   if (!tab?.id) {
     throw new Error("No active tab")
@@ -50,31 +52,57 @@ async function requestPageContent(): Promise<SavePayload> {
     throw new Error("Failed to get page content")
   }
 
-  return response
+  return { payload: response, tabId: tab.id }
 }
 
-async function handleSavePage(payload?: unknown) {
+async function handleSavePage(payload?: unknown, senderTabId?: number) {
   try {
-    const response = isSavePayload(payload) ? payload : await requestPageContent()
+    let savePayload: SavePayload
+    let tabId = senderTabId
 
-    // TODO: 来源，更多参数
+    if (isSavePayload(payload)) {
+      savePayload = payload
+    } else {
+      const result = await requestPageContent()
+      savePayload = result.payload
+      // popup 触发时 senderTabId 可能无效，优先用 requestPageContent 获取的 tabId
+      tabId = result.tabId
+    }
+
     const { saveBookmark } = await import("../lib/auth-client")
     const result = await saveBookmark({
-      url: response.url,
-      html: response.html,
-      title: response.title,
+      url: savePayload.url,
+      html: savePayload.html,
+      title: savePayload.title,
     })
 
     if (!result.ok) {
       const error = result.data?.error || "Save failed"
-      await notify("保存失败", error)
+      if (tabId) {
+        await showToast(tabId, "保存失败", error, "error")
+      }
       return { success: false, error }
     }
 
-    await notify("已收藏", result.data?.title || response.title || "页面已保存")
+    if (tabId) {
+      await showToast(
+        tabId,
+        "已收藏",
+        result.data?.title || savePayload.title || "页面已保存",
+        "success"
+      )
+    }
     return { success: true, data: result.data }
   } catch (err) {
-    await notify("保存失败", String(err))
+    // 异常时尝试获取 tabId 来显示 toast
+    try {
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true })
+      if (tab?.id) {
+        await showToast(tab.id, "保存失败", String(err), "error")
+      }
+    } catch {
+      /* ignore */
+    }
     return { success: false, error: String(err) }
   }
 }
@@ -100,7 +128,6 @@ async function handleDevicePoll(deviceCode: string, expiresIn: number, interval:
 
       // 授权成功，持久化 token 和用户信息
       const user = await completeDeviceAuth(result.accessToken)
-      await notify("MindPocket 登录成功", `欢迎，${user.name || user.email}`)
       return { success: true, user }
     }
 

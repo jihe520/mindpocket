@@ -1,6 +1,7 @@
 {
   "extends": "./.wxt/tsconfig.json",
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "allowImportingTsExtensions": true,
     "baseUrl": ".",
     "jsx": "react-jsx",

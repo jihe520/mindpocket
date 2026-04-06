@@ -56,8 +56,7 @@ function App() {
             removeCachedUser()
           }
         })
-        .catch((err) => {
-          console.error("[MindPocket] getSession error:", err)
+        .catch((_err) => {
           if (!cached) {
             setUser(null)
           }
@@ -109,7 +108,7 @@ function DeviceLoginForm() {
       setDeviceData(codeResp)
 
       // 在新标签页打开验证页面
-      await chrome.tabs.create({ url: codeResp.verification_uri_complete })
+      await browser.tabs.create({ url: codeResp.verification_uri_complete })
 
       // 通知 background 开始轮询（popup 关闭后仍继续）
       setStep("polling")
@@ -186,8 +185,6 @@ function DeviceLoginForm() {
 }
 
 function SavePage({ onSettings }: { onSettings: () => void }) {
-  const [status, setStatus] = useState<Status>("idle")
-  const [message, setMessage] = useState("")
   const [pageInfo, setPageInfo] = useState<{
     url: string
     title: string
@@ -206,18 +203,10 @@ function SavePage({ onSettings }: { onSettings: () => void }) {
     })
   }, [])
 
-  const handleSave = async () => {
-    setStatus("loading")
-    setMessage("")
-
-    const res = await browser.runtime.sendMessage({ type: "SAVE_PAGE" })
-    if (res?.success) {
-      setStatus("success")
-      setMessage(`已保存: ${res.data?.title || "页面"}`)
-    } else {
-      setStatus("error")
-      setMessage(res?.error || "保存失败")
-    }
+  // 发送消息后不等待结果，后台脚本会通过浏览器通知告知结果
+  const handleSave = () => {
+    browser.runtime.sendMessage({ type: "SAVE_PAGE" })
+    window.close()
   }
 
   return (
@@ -266,16 +255,9 @@ function SavePage({ onSettings }: { onSettings: () => void }) {
           <p className="page-title">{pageInfo.title}</p>
         </div>
       )}
-      <button
-        className="btn btn-save"
-        disabled={status === "loading"}
-        onClick={handleSave}
-        type="button"
-      >
-        {status === "loading" ? "保存中..." : "收藏此页面"}
+      <button className="btn btn-save" onClick={handleSave} type="button">
+        收藏此页面
       </button>
-      {status === "success" && <p className="success">{message}</p>}
-      {status === "error" && <p className="error">{message}</p>}
     </div>
   )
 }
