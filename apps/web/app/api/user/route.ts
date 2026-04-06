@@ -15,6 +15,5 @@ export async function GET() {
     name: session.user.name,
     email: session.user.email,
     avatar: session.user.image || "",
-    twoFactorEnabled: session.user.twoFactorEnabled ?? false,
   })
 }

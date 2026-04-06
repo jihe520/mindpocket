@@ -92,13 +92,6 @@
       "when": 1774224000000,
       "tag": "0012_cli_device_code",
       "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1775286294251,
-      "tag": "0013_nappy_cassandra_nova",
-      "breakpoints": true
     }
   ]
 }
