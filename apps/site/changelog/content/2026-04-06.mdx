@@ -1,0 +1,43 @@
+---
+title: "Element Picker, Extension Login, and Bookmark Views"
+description: "Save specific page elements with the new element picker, sign in directly from the extension popup, and choose how your bookmarks are displayed."
+date: "2026-04-06"
+tags: ["Extension", "Capture", "Auth", "UX"]
+version: "3.2"
+---
+
+- **Element selection mode** lets you pick and save specific elements on a page instead of capturing the whole thing, giving you finer control over what goes into MindPocket.
+- **Extension device login** adds a sign-in flow right inside the extension popup, so you can authenticate without switching tabs or copying tokens.
+- **Bookmark view mode selection** lets you choose how bookmarks appear, making it easier to browse large collections the way you prefer.
+- **Simplified login** by removing two-factor authentication, reducing friction during sign-in.
+
+<Accordion type="multiple" className="w-full not-prose">
+  <AccordionItem value="features">
+    <AccordionTrigger>Features</AccordionTrigger>
+    <AccordionContent className="flex flex-col gap-4 text-balance">
+      <ul className="list-disc space-y-2 pl-4">
+        <li>Added an element picker to the browser extension content script — activate selection mode, hover to highlight any element on the page, and save it directly to MindPocket.</li>
+        <li>Implemented device authorization flow in the extension with background polling and real-time UI feedback, enabling login without leaving the popup.</li>
+        <li>Added a bookmark view mode selector in appearance settings so you can switch between display formats for your saved bookmarks.</li>
+      </ul>
+    </AccordionContent>
+  </AccordionItem>
+  <AccordionItem value="improvements">
+    <AccordionTrigger>Improvements</AccordionTrigger>
+    <AccordionContent className="flex flex-col gap-4 text-balance">
+      <ul className="list-disc space-y-2 pl-4">
+        <li>Improved bookmark card and grid layout for better responsiveness across screen sizes.</li>
+        <li>Enhanced extension messaging with toast notifications for clearer feedback when saving pages or encountering errors.</li>
+        <li>Removed TOTP two-factor authentication to streamline the login experience.</li>
+      </ul>
+    </AccordionContent>
+  </AccordionItem>
+  <AccordionItem value="fixes">
+    <AccordionTrigger>Fixes</AccordionTrigger>
+    <AccordionContent className="flex flex-col gap-4 text-balance">
+      <ul className="list-disc space-y-2 pl-4">
+        <li>Fixed a hydration mismatch in the user navigation component that caused inconsistent rendering between server and client.</li>
+      </ul>
+    </AccordionContent>
+  </AccordionItem>
+</Accordion>
