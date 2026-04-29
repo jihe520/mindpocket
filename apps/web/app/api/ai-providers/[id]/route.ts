@@ -1,7 +1,6 @@
-import { headers } from "next/headers"
 import { z } from "zod"
 import { deleteProvider, updateProvider } from "@/db/queries/ai-provider"
-import { auth } from "@/lib/auth"
+import { requireApiSession } from "@/lib/api-auth"
 
 const updateSchema = z.object({
   name: z.string().min(1).max(100).optional(),
@@ -12,8 +11,11 @@ const updateSchema = z.object({
 })
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({ headers: await headers() })
-  const userId = session!.user!.id
+  const result = await requireApiSession()
+  if (!result.ok) {
+    return result.response
+  }
+  const userId = result.session.user.id
 
   const { id } = await params
   const body = await req.json()
@@ -27,8 +29,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth.api.getSession({ headers: await headers() })
-  const userId = session!.user!.id
+  const result = await requireApiSession()
+  if (!result.ok) {
+    return result.response
+  }
+  const userId = result.session.user.id
 
   const { id } = await params
   await deleteProvider(id, userId)

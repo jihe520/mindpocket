@@ -1,6 +1,5 @@
-import { headers } from "next/headers"
 import { getChatsByUserId } from "@/db/queries/chat"
-import { auth } from "@/lib/auth"
+import { requireApiSession } from "@/lib/api-auth"
 import { corsPreflight, withCors } from "@/lib/cors"
 
 export const dynamic = "force-dynamic"
@@ -10,8 +9,11 @@ export function OPTIONS(req: Request) {
 }
 
 export async function GET(req: Request) {
-  const session = await auth.api.getSession({ headers: await headers() })
-  const userId = session!.user!.id
+  const authResult = await requireApiSession()
+  if (!authResult.ok) {
+    return withCors(req, authResult.response)
+  }
+  const userId = authResult.session.user.id
 
   const { searchParams } = new URL(req.url)
   const limit = Number(searchParams.get("limit") || "20")

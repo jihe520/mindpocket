@@ -1,13 +1,15 @@
 import { parseSearchMode } from "@repo/types"
-import { headers } from "next/headers"
 import { searchBookmarks } from "@/db/queries/search"
-import { auth } from "@/lib/auth"
+import { requireApiSession } from "@/lib/api-auth"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() })
-  const userId = session!.user!.id
+  const authResult = await requireApiSession()
+  if (!authResult.ok) {
+    return authResult.response
+  }
+  const userId = authResult.session.user.id
 
   const { searchParams } = new URL(request.url)
   const q = searchParams.get("q")?.trim() || ""

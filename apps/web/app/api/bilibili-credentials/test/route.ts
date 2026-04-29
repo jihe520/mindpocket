@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/lib/auth"
+import { requireApiSession } from "@/lib/api-auth"
 
 export async function POST(request: Request) {
-  const _session = await auth.api.getSession({
-    headers: await import("next/headers").then((m) => m.headers()),
-  })
+  const result = await requireApiSession()
+  if (!result.ok) {
+    return result.response
+  }
 
   try {
     const body = await request.json()
