@@ -1,17 +1,19 @@
 import { and, count, eq, gte, sql } from "drizzle-orm"
-import { headers } from "next/headers"
 import { db } from "@/db/client"
 import { bookmark } from "@/db/schema/bookmark"
 import { chat } from "@/db/schema/chat"
 import { embedding } from "@/db/schema/embedding"
 import { folder } from "@/db/schema/folder"
-import { auth } from "@/lib/auth"
+import { requireApiSession } from "@/lib/api-auth"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(request: Request) {
-  const session = await auth.api.getSession({ headers: await headers() })
-  const userId = session!.user!.id
+  const result = await requireApiSession()
+  if (!result.ok) {
+    return result.response
+  }
+  const userId = result.session.user.id
   const { searchParams } = new URL(request.url)
   const days = Number(searchParams.get("days") || "30")
 

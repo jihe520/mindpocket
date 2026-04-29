@@ -168,6 +168,11 @@ const zh = {
     titlePlaceholder: "自动提取",
   },
   bookmark: {
+    delete: "删除",
+    deleteTitle: "删除书签",
+    deleteDescription: "确定要删除「{title}」吗？此操作不可撤销。",
+    deleteSuccess: "书签「{title}」已删除",
+    deleteFailed: "删除书签失败",
     moveToFolder: "移动到文件夹",
     removeFromFolder: "移出文件夹",
     moveSuccess: "移动成功",
@@ -205,6 +210,7 @@ const zh = {
   },
   bookmarkDetail: {
     back: "返回",
+    delete: "删除",
     originalLink: "原始链接",
     save: "保存",
     edit: "编辑",
@@ -521,6 +527,11 @@ const en: WebTranslationDict = {
     titlePlaceholder: "Auto-extract",
   },
   bookmark: {
+    delete: "Delete",
+    deleteTitle: "Delete bookmark",
+    deleteDescription: 'Are you sure you want to delete "{title}"? This action cannot be undone.',
+    deleteSuccess: 'Bookmark "{title}" deleted',
+    deleteFailed: "Failed to delete bookmark",
     moveToFolder: "Move to Folder",
     removeFromFolder: "Remove from Folder",
     moveSuccess: "Moved successfully",
@@ -558,6 +569,7 @@ const en: WebTranslationDict = {
   },
   bookmarkDetail: {
     back: "Back",
+    delete: "Delete",
     originalLink: "Original link",
     save: "Save",
     edit: "Edit",

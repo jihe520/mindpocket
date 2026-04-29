@@ -13,11 +13,13 @@ import {
   Loader2,
   MoreHorizontal,
   Package,
+  Trash2,
   Video,
 } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { BookmarkCard } from "@/components/bookmark-card"
+import { DeleteBookmarkDialog } from "@/components/delete-bookmark-dialog"
 import { hasPlatformIcon, PLATFORM_CONFIG, PlatformIcon } from "@/components/icons/platform-icons"
 import { MoveToFolderDialog } from "@/components/move-to-folder-dialog"
 import { Button } from "@/components/ui/button"
@@ -25,9 +27,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useBookmarkDelete } from "@/hooks/use-bookmark-delete"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { useBookmarkStore, useUIStore } from "@/stores"
@@ -235,6 +239,9 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
   }
   const TypeIcon = typeIcons[item.type] || Link2
   const [moveDialogOpen, setMoveDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const { deleteBookmark, error, isDeleting, resetError } = useBookmarkDelete()
 
   let domain: string | null = null
   if (item.url) {
@@ -272,7 +279,7 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
             {new Date(item.createdAt).toLocaleDateString("zh-CN")}
           </span>
         </Link>
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={setDropdownOpen} open={dropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               className="size-7 shrink-0 opacity-0 group-hover:opacity-100"
@@ -297,6 +304,19 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
               <FolderInput className="mr-2 size-3.5" />
               {t.bookmark.moveToFolder}
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={(event) => {
+                event.preventDefault()
+                setDropdownOpen(false)
+                resetError()
+                setDeleteDialogOpen(true)
+              }}
+              variant="destructive"
+            >
+              <Trash2 className="mr-2 size-3.5" />
+              {t.bookmark.delete}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -308,6 +328,27 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
         }}
         onOpenChange={setMoveDialogOpen}
         open={moveDialogOpen}
+      />
+      <DeleteBookmarkDialog
+        error={error}
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          deleteBookmark({
+            id: item.id,
+            title: item.title,
+            onSuccess: () => setDeleteDialogOpen(false),
+          }).catch(() => {
+            // 已通过 toast.error 处理错误，此处无需额外操作
+          })
+        }}
+        onOpenChange={(open) => {
+          if (!open) {
+            resetError()
+          }
+          setDeleteDialogOpen(open)
+        }}
+        open={deleteDialogOpen}
+        title={item.title}
       />
     </>
   )

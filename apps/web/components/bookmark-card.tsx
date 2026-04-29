@@ -9,11 +9,13 @@ import {
   Image as ImageIcon,
   Link2,
   MoreHorizontal,
+  Trash2,
   Video,
 } from "lucide-react"
 import NextImage from "next/image"
 import Link from "next/link"
 import { useState } from "react"
+import { DeleteBookmarkDialog } from "@/components/delete-bookmark-dialog"
 import { hasPlatformIcon, PlatformIcon } from "@/components/icons/platform-icons"
 import { MoveToFolderDialog } from "@/components/move-to-folder-dialog"
 import { Badge } from "@/components/ui/badge"
@@ -22,8 +24,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useBookmarkDelete } from "@/hooks/use-bookmark-delete"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
@@ -114,11 +118,14 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
   const domain = getDomain(item.url)
   const gradient = getGradientFromUrl(item.url)
   const [moveDialogOpen, setMoveDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [folderInfo, setFolderInfo] = useState({
     folderId: item.folderId,
     folderName: item.folderName,
     folderEmoji: item.folderEmoji,
   })
+  const { deleteBookmark, error, isDeleting, resetError } = useBookmarkDelete()
 
   const displayFolderName = folderInfo.folderName
   const displayFolderEmoji = folderInfo.folderEmoji
@@ -133,6 +140,12 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
           "transition-all duration-200 hover:-translate-y-0.5 hover:border-border hover:shadow-lg hover:shadow-black/5"
         )}
         href={`/bookmark/${item.id}`}
+        onClick={(e) => {
+          // 下拉菜单或对话框打开时阻止卡片导航
+          if (dropdownOpen || deleteDialogOpen || moveDialogOpen) {
+            e.preventDefault()
+          }
+        }}
       >
         {/* 封面图和状态信息 */}
         <div className="relative aspect-[1.18] w-full overflow-hidden bg-muted">
@@ -186,7 +199,7 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
 
           {/* 悬浮操作按钮 */}
           <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={setDropdownOpen} open={dropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   className="size-7 rounded-full border border-white/15 bg-black/35 text-white backdrop-blur-md hover:bg-black/55 hover:text-white"
@@ -197,7 +210,7 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
                   <MoreHorizontal className="size-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.preventDefault()}>
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
                   <a href={item.url || "#"} rel="noopener noreferrer" target="_blank">
                     <ExternalLink className="mr-2 size-3.5" />
@@ -211,6 +224,19 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
                 <DropdownMenuItem onSelect={() => setMoveDialogOpen(true)}>
                   <FolderInput className="mr-2 size-3.5" />
                   {t.bookmark.moveToFolder}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(event) => {
+                    event.preventDefault()
+                    setDropdownOpen(false)
+                    resetError()
+                    setDeleteDialogOpen(true)
+                  }}
+                  variant="destructive"
+                >
+                  <Trash2 className="mr-2 size-3.5" />
+                  {t.bookmark.delete}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -269,6 +295,27 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
         }}
         onOpenChange={setMoveDialogOpen}
         open={moveDialogOpen}
+      />
+      <DeleteBookmarkDialog
+        error={error}
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          deleteBookmark({
+            id: item.id,
+            title: item.title,
+            onSuccess: () => setDeleteDialogOpen(false),
+          }).catch(() => {
+            // 已通过 toast.error 处理错误，此处无需额外操作
+          })
+        }}
+        onOpenChange={(open) => {
+          if (!open) {
+            resetError()
+          }
+          setDeleteDialogOpen(open)
+        }}
+        open={deleteDialogOpen}
+        title={item.title}
       />
     </>
   )

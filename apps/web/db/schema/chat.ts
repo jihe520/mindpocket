@@ -28,7 +28,10 @@ export const message = pgTable(
     attachments: json("attachments").notNull().default([]),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (table) => [index("message_chatId_idx").on(table.chatId)]
+  (table) => [
+    index("message_chatId_idx").on(table.chatId),
+    index("message_chatId_createdAt_idx").on(table.chatId, table.createdAt),
+  ]
 )
 
 export const chatRelations = relations(chat, ({ one, many }) => ({

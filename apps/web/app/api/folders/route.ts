@@ -112,15 +112,17 @@ export async function PATCH(request: Request) {
     return Response.json({ error: "Invalid folder ids" }, { status: 400 })
   }
 
-  // 批量更新 sortOrder
-  await Promise.all(
-    orderedIds.map((id: string, index: number) =>
-      db
-        .update(folder)
-        .set({ sortOrder: index })
-        .where(and(eq(folder.id, id), eq(folder.userId, userId)))
+  // 批量更新 sortOrder，使用事务确保原子性
+  await db.transaction(async (tx) => {
+    await Promise.all(
+      orderedIds.map((id: string, index: number) =>
+        tx
+          .update(folder)
+          .set({ sortOrder: index })
+          .where(and(eq(folder.id, id), eq(folder.userId, userId)))
+      )
     )
-  )
+  })
 
   return Response.json({ success: true })
 }

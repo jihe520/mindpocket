@@ -13,16 +13,20 @@ import {
   Puzzle,
   Save,
   Tag,
+  Trash2,
   User,
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useCallback, useState } from "react"
+import { DeleteBookmarkDialog } from "@/components/delete-bookmark-dialog"
 import { hasPlatformIcon, PlatformIcon } from "@/components/icons/platform-icons"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { useBookmarkDelete } from "@/hooks/use-bookmark-delete"
 import { useLocale, useT } from "@/lib/i18n"
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false })
@@ -63,9 +67,12 @@ interface BookmarkDetail {
 }
 
 export function BookmarkDetailClient({ bookmark }: { bookmark: BookmarkDetail }) {
+  const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [content, setContent] = useState(bookmark.content ?? "")
   const [isSaving, setIsSaving] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const { deleteBookmark, error, isDeleting, resetError } = useBookmarkDelete()
 
   const handleSave = useCallback(async () => {
     setIsSaving(true)
@@ -88,8 +95,33 @@ export function BookmarkDetailClient({ bookmark }: { bookmark: BookmarkDetail })
       <div className="flex h-full flex-col">
         <Header
           bookmark={bookmark}
+          deleteError={error}
+          deleteOpen={deleteDialogOpen}
+          isDeleting={isDeleting}
           isEditing={isEditing}
           isSaving={isSaving}
+          onDelete={() => {
+            resetError()
+            setDeleteDialogOpen(true)
+          }}
+          onDeleteConfirm={() => {
+            deleteBookmark({
+              id: bookmark.id,
+              title: bookmark.title,
+              onSuccess: () => {
+                setDeleteDialogOpen(false)
+                router.push("/")
+              },
+            }).catch(() => {
+              // 已通过 toast.error 处理错误，此处无需额外操作
+            })
+          }}
+          onDeleteOpenChange={(open) => {
+            if (!open) {
+              resetError()
+            }
+            setDeleteDialogOpen(open)
+          }}
           onEdit={() => setIsEditing(true)}
           onSave={handleSave}
         />
@@ -107,59 +139,95 @@ export function BookmarkDetailClient({ bookmark }: { bookmark: BookmarkDetail })
 
 function Header({
   bookmark,
+  deleteError,
+  deleteOpen,
+  isDeleting,
   isEditing,
   isSaving,
+  onDelete,
+  onDeleteConfirm,
+  onDeleteOpenChange,
   onEdit,
   onSave,
 }: {
   bookmark: BookmarkDetail
+  deleteError: string | null
+  deleteOpen: boolean
+  isDeleting: boolean
   isEditing: boolean
   isSaving: boolean
+  onDelete: () => void
+  onDeleteConfirm: () => void
+  onDeleteOpenChange: (open: boolean) => void
   onEdit: () => void
   onSave: () => void
 }) {
   const t = useT()
   return (
-    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background">
-      <div className="flex flex-1 items-center gap-2 px-3">
-        <SidebarTrigger />
-        <Separator className="mr-2 data-[orientation=vertical]:h-4" orientation="vertical" />
-        <Link
-          className="flex items-center gap-1 text-muted-foreground text-sm hover:text-foreground"
-          href="/"
-        >
-          <ArrowLeft className="size-4" />
-          {t.bookmarkDetail.back}
-        </Link>
-        <Separator className="mx-2 data-[orientation=vertical]:h-4" orientation="vertical" />
-        <span className="line-clamp-1 flex-1 text-sm font-medium">{bookmark.title}</span>
-      </div>
-      <div className="flex items-center gap-2 px-3">
-        {bookmark.url && (
-          <Button asChild size="sm" variant="ghost">
-            <a href={bookmark.url} rel="noopener noreferrer" target="_blank">
-              <ExternalLink className="mr-1 size-3.5" />
-              {t.bookmarkDetail.originalLink}
-            </a>
-          </Button>
-        )}
-        {isEditing ? (
-          <Button disabled={isSaving} onClick={onSave} size="sm">
-            {isSaving ? (
+    <>
+      <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background">
+        <div className="flex min-w-0 flex-1 items-center gap-2 px-3">
+          <SidebarTrigger />
+          <Separator className="mr-2 data-[orientation=vertical]:h-4" orientation="vertical" />
+          <Link
+            className="flex shrink-0 items-center gap-1 text-muted-foreground text-sm hover:text-foreground"
+            href="/"
+          >
+            <ArrowLeft className="size-4" />
+            {t.bookmarkDetail.back}
+          </Link>
+          <Separator className="mx-2 data-[orientation=vertical]:h-4" orientation="vertical" />
+          <span className="min-w-0 flex-1 truncate text-sm font-medium">{bookmark.title}</span>
+        </div>
+        <div className="flex shrink-0 items-center gap-2 px-3">
+          {bookmark.url && (
+            <Button asChild size="sm" variant="ghost">
+              <a href={bookmark.url} rel="noopener noreferrer" target="_blank">
+                <ExternalLink className="mr-1 size-3.5" />
+                {t.bookmarkDetail.originalLink}
+              </a>
+            </Button>
+          )}
+          {isEditing ? (
+            <Button disabled={isSaving || isDeleting} onClick={onSave} size="sm">
+              {isSaving ? (
+                <Loader2 className="mr-1 size-3.5 animate-spin" />
+              ) : (
+                <Save className="mr-1 size-3.5" />
+              )}
+              {t.bookmarkDetail.save}
+            </Button>
+          ) : (
+            <Button disabled={isDeleting} onClick={onEdit} size="sm" variant="outline">
+              <Pencil className="mr-1 size-3.5" />
+              {t.bookmarkDetail.edit}
+            </Button>
+          )}
+          <Button
+            className="border-destructive/40 text-destructive hover:border-destructive/60 hover:bg-destructive/10 hover:text-destructive"
+            disabled={isDeleting}
+            onClick={onDelete}
+            size="sm"
+            variant="outline"
+          >
+            {isDeleting ? (
               <Loader2 className="mr-1 size-3.5 animate-spin" />
             ) : (
-              <Save className="mr-1 size-3.5" />
+              <Trash2 className="mr-1 size-3.5" />
             )}
-            {t.bookmarkDetail.save}
+            {t.bookmarkDetail.delete}
           </Button>
-        ) : (
-          <Button onClick={onEdit} size="sm" variant="outline">
-            <Pencil className="mr-1 size-3.5" />
-            {t.bookmarkDetail.edit}
-          </Button>
-        )}
-      </div>
-    </header>
+        </div>
+      </header>
+      <DeleteBookmarkDialog
+        error={deleteError}
+        isDeleting={isDeleting}
+        onConfirm={onDeleteConfirm}
+        onOpenChange={onDeleteOpenChange}
+        open={deleteOpen}
+        title={bookmark.title}
+      />
+    </>
   )
 }
 
