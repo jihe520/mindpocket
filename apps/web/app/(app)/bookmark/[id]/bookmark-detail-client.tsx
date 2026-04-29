@@ -177,7 +177,7 @@ function Header({
             {t.bookmarkDetail.back}
           </Link>
           <Separator className="mx-2 data-[orientation=vertical]:h-4" orientation="vertical" />
-          <span className="line-clamp-1 min-w-0 flex-1 text-sm font-medium">{bookmark.title}</span>
+          <span className="min-w-0 flex-1 truncate text-sm font-medium">{bookmark.title}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2 px-3">
           {bookmark.url && (

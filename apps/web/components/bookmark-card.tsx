@@ -223,9 +223,11 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
                 <DropdownMenuItem
                   onSelect={(event) => {
                     event.preventDefault()
-                    setDropdownOpen(false)
                     resetError()
                     setDeleteDialogOpen(true)
+                    // 延迟关闭下拉菜单，避免 Radix portal 卸载后
+                    // 剩余 pointer/click 事件穿透到卡片 Link 导致跳转
+                    setTimeout(() => setDropdownOpen(false), 100)
                   }}
                   variant="destructive"
                 >
