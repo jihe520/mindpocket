@@ -1,3 +1,4 @@
+import { del } from "@vercel/blob"
 import { and, eq } from "drizzle-orm"
 import { NextResponse } from "next/server"
 import { db } from "@/db/client"
@@ -95,6 +96,16 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const existing = await getBookmarkById({ id, userId })
   if (!existing) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
+  }
+
+  // 清理关联的 Vercel Blob 文件（文件类型书签）
+  if (existing.fileUrl) {
+    try {
+      await del(existing.fileUrl)
+    } catch (err) {
+      // Blob 删除失败不应阻塞数据库记录清理
+      console.error("Failed to delete blob for bookmark", id, existing.fileUrl, err)
+    }
   }
 
   await db.delete(bookmark).where(eq(bookmark.id, id))

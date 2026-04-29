@@ -16,6 +16,8 @@ interface BookmarkState {
   isLoading: boolean
   isLoadingMore: boolean
   cache: CacheMap<{ bookmarks: BookmarkItem[]; pagination: BookmarkPagination }>
+  // 跟踪正在删除的书签 ID，用于并发删除时的精确回滚
+  pendingDeletes: Record<string, true>
 
   // Actions
   fetchBookmarks: (offset?: number, append?: boolean) => Promise<void>
@@ -43,6 +45,7 @@ const initialState = {
   isLoading: false,
   isLoadingMore: false,
   cache: {},
+  pendingDeletes: {} as Record<string, true>,
 }
 
 function getCacheKey(filters: BookmarkFilters, offset: number): string {
@@ -149,39 +152,61 @@ export const useBookmarkStore = create<BookmarkState>()(
         },
 
         deleteBookmark: async (bookmarkId) => {
-          const prevBookmarks = get().bookmarks
-          const prevPagination = get().pagination
-          const prevCache = get().cache
-          const existsInCurrentList = prevBookmarks.some((item) => item.id === bookmarkId)
-
-          if (existsInCurrentList) {
-            set({
-              bookmarks: prevBookmarks.filter((item) => item.id !== bookmarkId),
-              pagination: {
-                ...prevPagination,
-                total: Math.max(0, prevPagination.total - 1),
-              },
-              cache: {},
-            })
-          } else {
-            set({ cache: {} })
+          // 防止重复删除请求
+          if (get().pendingDeletes[bookmarkId]) {
+            return false
           }
+
+          const { bookmarks: currentList, pagination: currentPagination } = get()
+          const existsInCurrentList = currentList.some((item) => item.id === bookmarkId)
+
+          // 乐观更新：标记 pending + 移除 + 清缓存
+          set((state) => ({
+            pendingDeletes: { ...state.pendingDeletes, [bookmarkId]: true },
+            bookmarks: currentList.filter((item) => item.id !== bookmarkId),
+            pagination: existsInCurrentList
+              ? { ...currentPagination, total: Math.max(0, currentPagination.total - 1) }
+              : currentPagination,
+            cache: {},
+          }))
 
           try {
             const res = await fetch(`/api/bookmarks/${bookmarkId}`, {
               method: "DELETE",
             })
-            if (res.ok) {
+
+            // 404 视为幂等成功（书签已不存在）
+            if (res.ok || res.status === 404) {
+              set((state) => {
+                const { [bookmarkId]: _, ...rest } = state.pendingDeletes
+                return { pendingDeletes: rest }
+              })
               return true
             }
           } catch {
-            // rollback below
+            // 网络错误 → 回滚
           }
 
-          set({
-            bookmarks: prevBookmarks,
-            pagination: prevPagination,
-            cache: prevCache,
+          // 精确回滚：仅恢复失败的书签，不覆盖全量列表
+          set((state) => {
+            const { [bookmarkId]: _removed, ...restPending } = state.pendingDeletes
+            // 如果书签已不在列表中（未被其他操作修改），追回它
+            if (existsInCurrentList && !state.bookmarks.some((item) => item.id === bookmarkId)) {
+              // 按原始顺序插回（找到被删书签在原列表中的位置）
+              const idx = currentList.findIndex((item) => item.id === bookmarkId)
+              const restored = [...state.bookmarks]
+              if (idx >= 0 && idx <= restored.length) {
+                restored.splice(idx, 0, currentList[idx])
+              } else {
+                restored.push(currentList.find((item) => item.id === bookmarkId)!)
+              }
+              return {
+                pendingDeletes: restPending,
+                bookmarks: restored,
+                pagination: { ...state.pagination, total: state.pagination.total + 1 },
+              }
+            }
+            return { pendingDeletes: restPending }
           })
           return false
         },
