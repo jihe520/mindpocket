@@ -119,6 +119,7 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
   const gradient = getGradientFromUrl(item.url)
   const [moveDialogOpen, setMoveDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [folderInfo, setFolderInfo] = useState({
     folderId: item.folderId,
     folderName: item.folderName,
@@ -192,7 +193,7 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
 
           {/* 悬浮操作按钮 */}
           <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={setDropdownOpen} open={dropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <Button
                   className="size-7 rounded-full border border-white/15 bg-black/35 text-white backdrop-blur-md hover:bg-black/55 hover:text-white"
@@ -220,7 +221,9 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onSelect={() => {
+                  onSelect={(event) => {
+                    event.preventDefault()
+                    setDropdownOpen(false)
                     resetError()
                     setDeleteDialogOpen(true)
                   }}

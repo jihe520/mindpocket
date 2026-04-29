@@ -240,6 +240,7 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
   const TypeIcon = typeIcons[item.type] || Link2
   const [moveDialogOpen, setMoveDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const { deleteBookmark, error, isDeleting, resetError } = useBookmarkDelete()
 
   let domain: string | null = null
@@ -278,7 +279,7 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
             {new Date(item.createdAt).toLocaleDateString("zh-CN")}
           </span>
         </Link>
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={setDropdownOpen} open={dropdownOpen}>
           <DropdownMenuTrigger asChild>
             <Button
               className="size-7 shrink-0 opacity-0 group-hover:opacity-100"
@@ -305,7 +306,9 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onSelect={() => {
+              onSelect={(event) => {
+                event.preventDefault()
+                setDropdownOpen(false)
                 resetError()
                 setDeleteDialogOpen(true)
               }}
