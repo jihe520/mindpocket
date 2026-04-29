@@ -203,7 +203,7 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
                   <MoreHorizontal className="size-3" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.preventDefault()}>
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild>
                   <a href={item.url || "#"} rel="noopener noreferrer" target="_blank">
                     <ExternalLink className="mr-2 size-3.5" />
@@ -291,10 +291,12 @@ export function BookmarkCard({ item }: { item: BookmarkItem }) {
         error={error}
         isDeleting={isDeleting}
         onConfirm={() => {
-          void deleteBookmark({
+          deleteBookmark({
             id: item.id,
             title: item.title,
             onSuccess: () => setDeleteDialogOpen(false),
+          }).catch(() => {
+            // 已通过 toast.error 处理错误，此处无需额外操作
           })
         }}
         onOpenChange={(open) => {

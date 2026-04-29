@@ -30,8 +30,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useBookmarkDelete } from "@/hooks/use-bookmark-delete"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useBookmarkDelete } from "@/hooks/use-bookmark-delete"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { useBookmarkStore, useUIStore } from "@/stores"
@@ -330,10 +330,12 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
         error={error}
         isDeleting={isDeleting}
         onConfirm={() => {
-          void deleteBookmark({
+          deleteBookmark({
             id: item.id,
             title: item.title,
             onSuccess: () => setDeleteDialogOpen(false),
+          }).catch(() => {
+            // 已通过 toast.error 处理错误，此处无需额外操作
           })
         }}
         onOpenChange={(open) => {

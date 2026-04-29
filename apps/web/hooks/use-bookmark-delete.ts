@@ -18,7 +18,6 @@ interface DeleteBookmarkOptions {
 export function useBookmarkDelete() {
   const t = useT()
   const deleteBookmarkFromStore = useBookmarkStore((state) => state.deleteBookmark)
-  const folders = useFolderStore((state) => state.folders)
   const removeBookmarkFromFolder = useFolderStore((state) => state.removeBookmarkFromFolder)
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,8 +31,10 @@ export function useBookmarkDelete() {
       setIsDeleting(true)
       setError(null)
 
-      const folderIds = folders
-        .filter((folder) => folder.items.some((item) => item.id === id))
+      // 在调用时获取最新的 folders，避免闭包捕获到空数组或过期数据
+      const folderIds = useFolderStore
+        .getState()
+        .folders.filter((folder) => folder.items.some((item) => item.id === id))
         .map((folder) => folder.id)
 
       const success = await deleteBookmarkFromStore(id)
@@ -52,7 +53,7 @@ export function useBookmarkDelete() {
       setIsDeleting(false)
       return success
     },
-    [deleteBookmarkFromStore, folders, isDeleting, removeBookmarkFromFolder, t.bookmark]
+    [deleteBookmarkFromStore, isDeleting, removeBookmarkFromFolder, t.bookmark]
   )
 
   return {
@@ -62,4 +63,3 @@ export function useBookmarkDelete() {
     resetError: () => setError(null),
   }
 }
-

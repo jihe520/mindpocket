@@ -94,10 +94,10 @@ export function BookmarkDetailClient({ bookmark }: { bookmark: BookmarkDetail })
     <SidebarInset className="flex min-w-0 flex-col overflow-hidden">
       <div className="flex h-full flex-col">
         <Header
+          bookmark={bookmark}
           deleteError={error}
           deleteOpen={deleteDialogOpen}
           isDeleting={isDeleting}
-          bookmark={bookmark}
           isEditing={isEditing}
           isSaving={isSaving}
           onDelete={() => {
@@ -105,13 +105,15 @@ export function BookmarkDetailClient({ bookmark }: { bookmark: BookmarkDetail })
             setDeleteDialogOpen(true)
           }}
           onDeleteConfirm={() => {
-            void deleteBookmark({
+            deleteBookmark({
               id: bookmark.id,
               title: bookmark.title,
               onSuccess: () => {
                 setDeleteDialogOpen(false)
                 router.push("/")
               },
+            }).catch(() => {
+              // 已通过 toast.error 处理错误，此处无需额外操作
             })
           }}
           onDeleteOpenChange={(open) => {
@@ -208,7 +210,11 @@ function Header({
             size="sm"
             variant="outline"
           >
-            <Trash2 className="mr-1 size-3.5" />
+            {isDeleting ? (
+              <Loader2 className="mr-1 size-3.5 animate-spin" />
+            ) : (
+              <Trash2 className="mr-1 size-3.5" />
+            )}
             {t.bookmarkDetail.delete}
           </Button>
         </div>
