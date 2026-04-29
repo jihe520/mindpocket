@@ -19,6 +19,7 @@ interface BookmarkState {
 
   // Actions
   fetchBookmarks: (offset?: number, append?: boolean) => Promise<void>
+  deleteBookmark: (bookmarkId: string) => Promise<boolean>
   setFilters: (filters: Partial<BookmarkFilters>) => void
   resetFilters: () => void
   reset: () => void
@@ -145,6 +146,44 @@ export const useBookmarkStore = create<BookmarkState>()(
           } catch {
             set({ isLoading: false, isLoadingMore: false })
           }
+        },
+
+        deleteBookmark: async (bookmarkId) => {
+          const prevBookmarks = get().bookmarks
+          const prevPagination = get().pagination
+          const prevCache = get().cache
+          const existsInCurrentList = prevBookmarks.some((item) => item.id === bookmarkId)
+
+          if (existsInCurrentList) {
+            set({
+              bookmarks: prevBookmarks.filter((item) => item.id !== bookmarkId),
+              pagination: {
+                ...prevPagination,
+                total: Math.max(0, prevPagination.total - 1),
+              },
+              cache: {},
+            })
+          } else {
+            set({ cache: {} })
+          }
+
+          try {
+            const res = await fetch(`/api/bookmarks/${bookmarkId}`, {
+              method: "DELETE",
+            })
+            if (res.ok) {
+              return true
+            }
+          } catch {
+            // rollback below
+          }
+
+          set({
+            bookmarks: prevBookmarks,
+            pagination: prevPagination,
+            cache: prevCache,
+          })
+          return false
         },
 
         setFilters: (newFilters) => {

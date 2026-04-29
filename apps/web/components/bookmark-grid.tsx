@@ -13,11 +13,13 @@ import {
   Loader2,
   MoreHorizontal,
   Package,
+  Trash2,
   Video,
 } from "lucide-react"
 import Link from "next/link"
 import { useCallback, useEffect, useState } from "react"
 import { BookmarkCard } from "@/components/bookmark-card"
+import { DeleteBookmarkDialog } from "@/components/delete-bookmark-dialog"
 import { hasPlatformIcon, PLATFORM_CONFIG, PlatformIcon } from "@/components/icons/platform-icons"
 import { MoveToFolderDialog } from "@/components/move-to-folder-dialog"
 import { Button } from "@/components/ui/button"
@@ -25,8 +27,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useBookmarkDelete } from "@/hooks/use-bookmark-delete"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useT } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -235,6 +239,8 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
   }
   const TypeIcon = typeIcons[item.type] || Link2
   const [moveDialogOpen, setMoveDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const { deleteBookmark, error, isDeleting, resetError } = useBookmarkDelete()
 
   let domain: string | null = null
   if (item.url) {
@@ -297,6 +303,17 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
               <FolderInput className="mr-2 size-3.5" />
               {t.bookmark.moveToFolder}
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={() => {
+                resetError()
+                setDeleteDialogOpen(true)
+              }}
+              variant="destructive"
+            >
+              <Trash2 className="mr-2 size-3.5" />
+              {t.bookmark.delete}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -308,6 +325,25 @@ function BookmarkListItem({ item }: { item: BookmarkItem }) {
         }}
         onOpenChange={setMoveDialogOpen}
         open={moveDialogOpen}
+      />
+      <DeleteBookmarkDialog
+        error={error}
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          void deleteBookmark({
+            id: item.id,
+            title: item.title,
+            onSuccess: () => setDeleteDialogOpen(false),
+          })
+        }}
+        onOpenChange={(open) => {
+          if (!open) {
+            resetError()
+          }
+          setDeleteDialogOpen(open)
+        }}
+        open={deleteDialogOpen}
+        title={item.title}
       />
     </>
   )
