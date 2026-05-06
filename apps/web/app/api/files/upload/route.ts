@@ -1,7 +1,7 @@
-import { put } from "@vercel/blob"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { put } from "@/lib/storage/minio"
 
 export async function POST(request: Request) {
   const session = await auth.api.getSession({

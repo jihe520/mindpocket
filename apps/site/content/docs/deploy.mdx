@@ -1,17 +1,25 @@
 ---
 title: 部署说明
-description: 面向自托管场景的最小部署建议，包括站点、数据库与运行时依赖。
+description: 面向自托管场景的部署建议，使用 Docker 进行一键部署。
 ---
 
 # 部署说明
 
-## 推荐组合
+## 部署方式
 
-对个人使用场景，推荐以下组合：
+推荐使用 Docker 进行部署，内置 PostgreSQL 数据库，无需外部依赖。
 
-- 前端：Vercel
-- 数据库：Neon PostgreSQL
-- 认证：Better Auth
+```bash
+# 复制并编辑环境变量
+cp .env.example .env
+
+# 构建并启动所有服务
+docker compose up -d
+```
+
+启动后访问 http://localhost:3000 即可使用。
+
+详见 [README](https://github.com/jihe520/mindpocket#-deploy) 获取完整的 Docker 部署指南。
 
 ## 站点拆分
 

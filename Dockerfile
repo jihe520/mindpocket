@@ -15,7 +15,6 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 RUN pnpm rebuild bcrypt
 
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV DOCKER=true
 
 RUN pnpm --filter @repo/types build && \
     cd apps/web && npx next build
@@ -56,7 +55,6 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
-ENV DOCKER=true
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs && \

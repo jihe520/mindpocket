@@ -1,5 +1,4 @@
 import type { IngestResult, IngestStatus } from "@repo/types"
-import { put } from "@vercel/blob"
 import { eq } from "drizzle-orm"
 import { nanoid } from "nanoid"
 import { db } from "@/db/client"
@@ -9,6 +8,7 @@ import { bookmark } from "@/db/schema/bookmark"
 import { embedding as embeddingTable } from "@/db/schema/embedding"
 import { generateEmbeddings } from "@/lib/ai/embedding"
 import { getEmbeddingModel } from "@/lib/ai/provider"
+import { put } from "@/lib/storage/minio"
 import {
   convertBuffer,
   convertUrl,

@@ -30,8 +30,8 @@ MindPocket organizes your bookmarks with AI-powered RAG content summarization an
 
 ## ✨ Features
 
-1. **Zero Cost**: Vercel + Neon free tier is enough for personal use
-2. **One-Click Deploy**: Set up your personal bookmark system in minutes
+1. **Self-Hosted**: Docker one-click deploy, fully control your own data
+2. **Zero Cost**: Free for personal use with built-in PostgreSQL
 3. **Multi-Platform**: Web + Mobile + Browser Extension
 4. **AI Enhanced**: RAG and AI Agent for smart tagging and summarization
 5. **CLI Ready**: Official CLI makes it easy to integrate with external agents like OpenClaw
@@ -47,37 +47,7 @@ This is a pure **VIBE CODING** project:
 - VIBE Coding write-up (CN): [How I VIBE CODED this project](./docs/vibe-coding.md)
 - VIBE Coding PRs are welcome!!!
 
-## 🚀 Quick Deploy
-
-### Prerequisites
-
-- [Vercel Account](https://vercel.com) (Free)
-- A PostgreSQL database
-- LLM and Embedding Model API Key
-
-### Deploy Steps
-
-1. **[Fork this repository](../../fork)**
-2. **Connect to Vercel**
-   - Click "New Project" → "Import Git Repository" in Vercel dashboard
-   - Select your forked MindPocket repository
-   - Set Root Directory to `apps/web`
-   - Keep Build Command as `pnpm build`
-   - Click "Deploy"
-   - Add a PostgreSQL `DATABASE_URL` in "Settings" → "Environment Variables"
-   - Neon pooled URLs work out of the box if you want a managed option
-   - Connect Vercel Blob storage
-   - Add the remaining environment variables in "Settings" → "Environment Variables" (refer to `apps/web/.env.example`)
-
-3. **Initialize Database**
-   - No manual action required
-   - During build, the app runs an idempotent bootstrap (`CREATE EXTENSION IF NOT EXISTS vector` + `drizzle-kit push --force`)
-
-4. **Create Admin Account**
-   - Visit your deployment URL
-   - Register your first account to start using
-
-## 🐳 Docker Deployment
+## 🚀 Deploy
 
 > Docker deployment covers only the **Web application** (`apps/web`). Mobile app and browser extension are not included.
 
@@ -86,7 +56,7 @@ There are two Docker-based deployment modes:
 | Mode | Command | Use case |
 |------|---------|----------|
 | **Full stack** | `docker compose up -d` | Self-hosting / production — runs the app + PostgreSQL together |
-| **DB only** | `docker compose up -d postgres` | Local development — run just pgvector/PostgreSQL, start the app with `pnpm dev` |
+| **DB only** | `docker compose up -d postgres minio` | Local development — run PostgreSQL + MinIO, start the app with `pnpm dev` |
 
 ### Prerequisites
 
@@ -114,6 +84,7 @@ Visit http://localhost:3000 to start using.
 |---------|-------------|--------------|
 | `mindpocket` | Next.js Web App | 3000 |
 | `postgres` | pgvector/PostgreSQL 17 | 5432 (internal only) |
+| `minio` | MinIO Object Storage (S3-compatible) | 9000 / 9001 (console) |
 
 **Environment Variables** (see `.env.example` for full list):
 
@@ -126,6 +97,11 @@ Visit http://localhost:3000 to start using.
 | `POSTGRES_PASSWORD` | `mindpocket` | Built-in PostgreSQL password |
 | `POSTGRES_DB` | `mindpocket` | Built-in PostgreSQL database name |
 | `DATABASE_URL` | auto-generated | External DB connection string; overrides built-in PostgreSQL |
+| `MINIO_ENDPOINT` | `http://minio:9000` | MinIO endpoint (container-internal address) |
+| `MINIO_ACCESS_KEY` | `minioadmin` | MinIO access key |
+| `MINIO_SECRET_KEY` | `minioadmin` | MinIO secret key |
+| `MINIO_BUCKET` | `mindpocket` | MinIO bucket name |
+| `MINIO_PUBLIC_URL` | `http://localhost:9000` | Public URL for file access (host address) |
 
 **Using an External Database:**
 
@@ -163,10 +139,10 @@ docker compose up -d --build           # Rebuild image
 
 ### Mode 2 — DB Only (Local Development)
 
-Starts only the pgvector/PostgreSQL container. The app runs locally with `pnpm dev`. Best for development.
+Starts PostgreSQL and MinIO containers. The app runs locally with `pnpm dev`. Best for development.
 
 ```bash
-docker compose up -d postgres
+docker compose up -d postgres minio
 ```
 
 Default local connection string:
@@ -177,7 +153,7 @@ DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/mindpocket
 
 If the container fails to start, check:
 
-- Port `5432` is free
+- Port `5432` / `9000` is free
 - `DATABASE_URL` points to the local container
 - The container image includes `pgvector`
 
@@ -198,8 +174,8 @@ cd mindpocket
 # Install dependencies
 pnpm install
 
-# Start local PostgreSQL with pgvector (Docker Mode 2)
-docker compose up -d postgres
+# Start local PostgreSQL + MinIO (Docker Mode 2)
+docker compose up -d postgres minio
 
 # Configure environment
 cd apps/web

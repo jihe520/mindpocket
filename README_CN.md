@@ -30,8 +30,8 @@ MindPocket 将你的收藏内容进行分类存储，并通过 AI Agent 进行 R
 
 ## ✨ 特性
 
-1. **零成本部署**: Vercel + Neon 免费额度完全够个人使用，无需购买服务器
-2. **一键部署**: 几分钟内打造个人收藏系统，部署简单，几乎零配置
+1. **自托管**: Docker 一键部署，完全掌控自己的数据
+2. **零成本**: 内置 PostgreSQL，个人使用完全免费
 3. **多端支持**: Web + Mobile + Browser Extension 三端覆盖
 4. **AI 增强**: RAG 和 AI Agent 集成，智能标签和内容总结
 5. **CLI 友好**: 官方 CLI 方便与 OpenClaw 等外部 Agent 集成
@@ -49,37 +49,7 @@ MindPocket 将你的收藏内容进行分类存储，并通过 AI Agent 进行 R
 
 欢迎交流 VIBE Coding 经验！
 
-## 🚀 快速部署
-
-### 前置要求
-
-- [Vercel 账号](https://vercel.com)（免费）
-- 一个 PostgreSQL 数据库
-- 大模型 和 嵌入模型 的 API Key
-
-### 部署步骤
-
-1. **[Fork 本仓库](../../fork)**
-2. **Vercel 链接**
-   - 在 Vercel 仪表盘点击 "New Project" → "Import Git Repository"
-   - 选择你 Fork 的 MindPocket 仓库
-   - 选择 Root Directory `apps/web`
-   - Build Command 保持为 `pnpm build`
-   - 点击 "Deploy"
-   - 在 "Settings" → "Environment Variables" 中，添加 PostgreSQL `DATABASE_URL`
-   - 如果你想继续用托管数据库，Neon 的 pooled URL 可以直接使用
-   - 连接 Vercel Blob 存储
-   - 继续补齐其余环境变量（参考 [`apps/web/.env.example`](./apps/web/.env.example)）
-
-3. **初始化数据库**
-   - 不需要手动执行命令
-   - 构建阶段会自动执行幂等初始化（`CREATE EXTENSION IF NOT EXISTS vector` + `drizzle-kit push --force`）
-
-4. **创建管理员账号**
-   - 访问你的部署地址
-   - 注册第一个账号即可开始使用(第一个账号默认管理员账户，注册后关闭注册功能，尽快注册)
-
-## 🐳 Docker 部署
+## 🚀 部署
 
 > Docker 部署目前仅包含 **Web 应用**（`apps/web`），不包含移动端和浏览器插件。
 
@@ -88,7 +58,7 @@ Docker 部署分为两种模式：
 | 模式 | 命令 | 适用场景 |
 |------|------|----------|
 | **全栈模式** | `docker compose up -d` | 自托管 / 生产环境 — 应用 + PostgreSQL 全部容器化 |
-| **仅数据库** | `docker compose up -d postgres` | 本地开发 — 只启动 pgvector/PostgreSQL，应用用 `pnpm dev` 本地运行 |
+| **仅数据库** | `docker compose up -d postgres minio` | 本地开发 — 启动 PostgreSQL + MinIO，应用用 `pnpm dev` 本地运行 |
 
 ### 前置要求
 
@@ -116,6 +86,7 @@ docker compose up -d
 |------|------|----------|
 | `mindpocket` | Next.js Web 应用 | 3000 |
 | `postgres` | pgvector/PostgreSQL 17 数据库 | 5432（仅容器内部） |
+| `minio` | MinIO 对象存储（S3 兼容） | 9000 / 9001（控制台） |
 
 **环境变量**（完整列表见 `.env.example`）：
 
@@ -128,6 +99,11 @@ docker compose up -d
 | `POSTGRES_PASSWORD` | `mindpocket` | 内置 PostgreSQL 密码 |
 | `POSTGRES_DB` | `mindpocket` | 内置 PostgreSQL 数据库名 |
 | `DATABASE_URL` | 自动拼接 | 外部数据库连接串，设置后将跳过内置 PostgreSQL 配置 |
+| `MINIO_ENDPOINT` | `http://minio:9000` | MinIO 端点（容器内部地址） |
+| `MINIO_ACCESS_KEY` | `minioadmin` | MinIO 访问密钥 |
+| `MINIO_SECRET_KEY` | `minioadmin` | MinIO 密钥 |
+| `MINIO_BUCKET` | `mindpocket` | MinIO 存储桶名称 |
+| `MINIO_PUBLIC_URL` | `http://localhost:9000` | 文件公开访问地址（宿主机地址） |
 
 **使用外部数据库：**
 
@@ -165,10 +141,10 @@ docker compose up -d --build           # 重新构建镜像
 
 ### 模式二 — 仅数据库（本地开发）
 
-只启动 pgvector/PostgreSQL 容器，应用通过 `pnpm dev` 本地运行，适合开发调试。
+启动 PostgreSQL 和 MinIO 容器，应用通过 `pnpm dev` 本地运行，适合开发调试。
 
 ```bash
-docker compose up -d postgres
+docker compose up -d postgres minio
 ```
 
 默认本地连接串：
@@ -179,7 +155,7 @@ DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/mindpocket
 
 如果容器启动失败，优先检查：
 
-- `5432` 端口是否被占用
+- `5432` / `9000` 端口是否被占用
 - `DATABASE_URL` 是否指向本地容器
 - 当前镜像是否包含 `pgvector`
 
@@ -200,8 +176,8 @@ cd mindpocket
 # 安装依赖
 pnpm install
 
-# 启动本地 pgvector/PostgreSQL（Docker 模式二）
-docker compose up -d postgres
+# 启动本地 PostgreSQL + MinIO（Docker 模式二）
+docker compose up -d postgres minio
 
 # 配置环境变量
 cd apps/web
@@ -274,7 +250,7 @@ mindpocket bookmarks list
 - **框架**: Next.js 16 (App Router)
 - **UI**: Radix UI + Tailwind CSS 4
 - **认证**: Better Auth
-- **数据库**: PostgreSQL (Neon) + Drizzle ORM
+- **数据库**: PostgreSQL + Drizzle ORM
 - **AI**: Vercel AI SDK + OpenAI
 - **状态管理**: Zustand
 - **动画**: Motion (Framer Motion)

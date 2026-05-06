@@ -29,6 +29,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     ports:
       - "${PORT:-3000}:3000"
     restart: unless-stopped
@@ -44,11 +46,35 @@ services:
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-mindpocket-local-dev-secret}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-}
       REDIS_URL: ${REDIS_URL:-}
-      BLOB_READ_WRITE_TOKEN: ${BLOB_READ_WRITE_TOKEN:-}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-mindpocket}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-http://localhost:9000}
       KV_REST_API_READ_ONLY_TOKEN: ${KV_REST_API_READ_ONLY_TOKEN:-}
       KV_REST_API_TOKEN: ${KV_REST_API_TOKEN:-}
       KV_REST_API_URL: ${KV_REST_API_URL:-}
       KV_URL: ${KV_URL:-}
 
+  minio:
+    image: minio/minio:latest
+    container_name: mindpocket-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - mindpocket_minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
 volumes:
   mindpocket_postgres_data:
+  mindpocket_minio_data:
